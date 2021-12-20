@@ -241,6 +241,9 @@ AS     := $(GCCPATH)arm-none-eabi-gcc
 LD       := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS  += -O3 -Os
 LDLIBS   += -lm -lgcc -lc
+LDLIBS   += -Wl,--wrap=__stack_chk_fail -Wl,--wrap=__stack_chk_init
+AFLAGS   += -fstack-protector-strong
+CFLAGS   += -fstack-protector-strong
 
 # import rules to compile glyphs(/pone)
 include $(BOLOS_SDK)/Makefile.glyphs
