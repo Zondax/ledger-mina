@@ -22,11 +22,9 @@ include $(BOLOS_SDK)/Makefile.defines
 
 APP_LOAD_PARAMS= --path "44'/12586'" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
 
-GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
-VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
-APPVERSION_M=$(shell echo "${VERSION_TAG}" | cut -f 1 -d .)
-APPVERSION_N=$(shell echo "${VERSION_TAG}" | cut -f 2 -d .)
-APPVERSION_P=$(shell echo "${VERSION_TAG}" | cut -f 3 -d . | sed 's/^\([0-9]\)[-\.].*/\1/g')
+APPVERSION_M=1
+APPVERSION_N=0
+APPVERSION_P=4
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
