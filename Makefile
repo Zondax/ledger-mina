@@ -27,7 +27,7 @@ GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/d
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
 APPVERSION_N=0
-APPVERSION_P=7
+APPVERSION_P=8
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
@@ -152,10 +152,6 @@ DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=$(shell echo -n $(WEBUSB_URL) | w
 
 DEFINES   += UNUSED\(x\)=\(void\)x
 DEFINES   += APPVERSION=\"$(APPVERSION)\"
-
-# Ledger: add the "Pending security review" disclaimer
-APP_LOAD_PARAMS += --tlvraw 9F:01
-DEFINES += HAVE_PENDING_REVIEW_SCREEN
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
