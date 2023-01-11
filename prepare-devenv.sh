@@ -1,16 +1,16 @@
 # shellcheck disable=SC1091,SC2155
 
 # SOURCE THIS FILE
-# . prepare-devenv blue|s|x
+# . prepare-devenv s|x
 
 if [ $# -ne 1 ]; then
-    echo "Possible options: blue, s or x"
+    echo "Possible options: s or x"
     return
 elif [[ $1 == "-h" ]]; then
-    echo "Possible options: blue, s or x"
+    echo "Possible options: s or x"
     return
-elif [[ $1 != "blue" ]] && [[ $1 != "s" ]] && [[ $1 != "x" ]]; then
-    echo "Possible options: blue, s or x"
+    echo "Possible options: s or x"
+elif [[ $1 != "s" ]] && [[ $1 != "x" ]]; then
     return
 fi
 
@@ -45,11 +45,6 @@ if [ ! -d dev-env/SDK ] ; then
     mv clang+llvm* dev-env/CC/nanox/clang-arm-fropi
     ln -s ../nanox/clang-arm-fropi dev-env/CC/others/
 
-    wget 'https://github.com/LedgerHQ/blue-secure-sdk/archive/blue-r21.1.tar.gz' -O blue-secure-sdk.tar.gz
-    tar xf blue-secure-sdk.tar.gz
-    rm blue-secure-sdk.tar.gz
-    mv blue-secure-sdk* dev-env/SDK/blue-secure-sdk
-
     wget 'https://github.com/LedgerHQ/nanos-secure-sdk/archive/refs/tags/2.1.0.tar.gz' -O nanos-secure-sdk.tar.gz
     tar xf nanos-secure-sdk.tar.gz
     rm nanos-secure-sdk.tar.gz
@@ -69,10 +64,7 @@ fi
 
 source dev-env/ledger_py3/bin/activate
 
-if [[ $1 == "blue" ]]; then
-    export BOLOS_SDK=$(pwd)/dev-env/SDK/blue-secure-sdk
-    export BOLOS_ENV=$(pwd)/dev-env/CC/others
-elif [[ $1 == "s" ]]; then
+if [[ $1 == "s" ]]; then
     export BOLOS_SDK=$(pwd)/dev-env/SDK/nanos-secure-sdk
     export BOLOS_ENV=$(pwd)/dev-env/CC/others
 elif [[ $1 == "x" ]]; then
