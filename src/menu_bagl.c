@@ -1,3 +1,4 @@
+#ifdef HAVE_BAGL
 #include "menu.h"
 
 #ifdef HAVE_ON_DEVICE_UNIT_TESTS
@@ -49,3 +50,4 @@ void ui_idle(void) {
     }
     ux_flow_init(0, ux_idle_flow, NULL);
 }
+#endif // HAVE_BAGL
