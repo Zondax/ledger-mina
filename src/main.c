@@ -192,10 +192,12 @@ void app_main(void) {
     return;
 }
 
+#ifdef HAVE_BAGL
 // override point, but nothing more to do
 void io_seproxyhal_display(const bagl_element_t *element) {
     io_seproxyhal_display_default((bagl_element_t*)element);
 }
+#endif
 
 unsigned char io_event(unsigned char channel) {
     UNUSED(channel);
@@ -209,7 +211,9 @@ unsigned char io_event(unsigned char channel) {
             break;
 
         case SEPROXYHAL_TAG_BUTTON_PUSH_EVENT:
+#ifdef HAVE_BAGL
             UX_BUTTON_PUSH_EVENT(G_io_seproxyhal_spi_buffer);
+#endif  // HAVE_BAGL
             break;
 
         case SEPROXYHAL_TAG_STATUS_EVENT:
@@ -222,7 +226,12 @@ unsigned char io_event(unsigned char channel) {
             break;
 
         case SEPROXYHAL_TAG_DISPLAY_PROCESSED_EVENT:
+#ifdef HAVE_BAGL
             UX_DISPLAYED_EVENT({});
+#endif  // HAVE_BAGL
+#ifdef HAVE_NBGL
+            UX_DEFAULT_EVENT();
+#endif  // HAVE_NBGL
             break;
 
         case SEPROXYHAL_TAG_TICKER_EVENT:
@@ -308,7 +317,13 @@ __attribute__((section(".boot"))) int main(void) {
     os_boot();
 
     for (;;) {
-        UX_INIT();
+#ifdef HAVE_BAGL
+                UX_INIT();
+                ux_stack_push();
+#endif  // HAVE_BAGL
+#ifdef HAVE_NBGL
+                nbgl_objInit();
+#endif  // HAVE_NBGL
 
         BEGIN_TRY {
             TRY {
@@ -322,6 +337,7 @@ __attribute__((section(".boot"))) int main(void) {
                 ui_idle();
 
 #ifdef HAVE_BLE
+                G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
                 BLE_power(0, NULL);
                 BLE_power(1, "Nano X");
 #endif // HAVE_BLE
