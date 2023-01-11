@@ -15,50 +15,10 @@ void test_crypto(void)
         THROW(INVALID_PARAMETER);
     }
     sendResponse(set_result_test_crypto(), true);
-}
-
-UX_STEP_NOCB_INIT(
-    ux_test_crypto_done_flow_step,
-    pb,
-    test_crypto(),
-    {
-       &C_icon_validate_14,
-      "Done",
-    });
-
-UX_FLOW(ux_test_crypto_done_flow,
-        &ux_test_crypto_done_flow_step);
-
-#ifdef HAVE_ON_DEVICE_UNIT_TESTS
-
-UX_STEP_TIMEOUT(
-    ux_test_crypto_testing_step,
-    pb,
-    1,
-    ux_test_crypto_done_flow,
-    {
-      &C_icon_processing,
-      "Unit tests...",
-    });
-
-UX_FLOW(ux_test_crypto_testing_flow,
-        &ux_test_crypto_testing_step);
-#else
-
-UX_STEP_TIMEOUT(
-    ux_test_crypto_testing_step,
-    pb,
-    1,
-    ux_test_crypto_done_flow,
-    {
-      &C_icon_processing,
-      "Testing crypto...",
-    });
-
-UX_FLOW(ux_test_crypto_testing_flow,
-        &ux_test_crypto_testing_step);
-
+#ifdef HAVE_NBGL
+    ui_idle();
 #endif
+}
 
 void handle_test_crypto(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
                         uint8_t dataLength, volatile unsigned int *flags)
@@ -71,6 +31,6 @@ void handle_test_crypto(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
         THROW(INVALID_PARAMETER);
     }
 
-    ux_flow_init(0, ux_test_crypto_testing_flow, NULL);
+    ui_test_crypto(dataBuffer);
     *flags |= IO_ASYNCH_REPLY;
 }
