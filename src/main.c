@@ -228,7 +228,7 @@ unsigned char io_event(unsigned char channel) {
         case SEPROXYHAL_TAG_TICKER_EVENT:
             UX_TICKER_EVENT(G_io_seproxyhal_spi_buffer,
             {
-            #if !defined(TARGET_NANOX) && !defined(TARGET_NANOS2)
+            #if defined(TARGET_NANOS)
                 if (UX_ALLOWED) {
                     if (ux_step_count) {
                     // prepare next screen
