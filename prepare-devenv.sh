@@ -4,13 +4,13 @@
 # . prepare-devenv s|x
 
 if [ $# -ne 1 ]; then
-    echo "Possible options: s or x"
+    echo "Possible options: s, x, or stax"
     return
 elif [[ $1 == "-h" ]]; then
-    echo "Possible options: s or x"
+    echo "Possible options: s, x, or stax"
     return
-    echo "Possible options: s or x"
-elif [[ $1 != "s" ]] && [[ $1 != "x" ]]; then
+elif [[ $1 != "s" ]] && [[ $1 != "x" ]] && [[ $1 != "stax" ]]; then
+    echo "Possible options: s, x, or stax"
     return
 fi
 
@@ -69,6 +69,9 @@ if [[ $1 == "s" ]]; then
     export BOLOS_ENV=$(pwd)/dev-env/CC/others
 elif [[ $1 == "x" ]]; then
     export BOLOS_SDK=$(pwd)/dev-env/SDK/nanox-secure-sdk
+    export BOLOS_ENV=$(pwd)/dev-env/CC/nanox
+elif [[ $1 == "stax" ]]; then
+    export BOLOS_SDK=$(pwd)/ledger-secure-sdk
     export BOLOS_ENV=$(pwd)/dev-env/CC/nanox
 fi
 
