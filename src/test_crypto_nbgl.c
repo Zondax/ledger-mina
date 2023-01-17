@@ -5,5 +5,12 @@
 void ui_test_crypto(uint8_t* dataBuffer)
 {
     UNUSED(dataBuffer);
+
+#ifdef HAVE_ON_DEVICE_UNIT_TESTS
+    nbgl_useCaseSpinner("Unit Tests ...");
+#else 
+    nbgl_useCaseSpinner("Testing cryto ...");
+#endif
+    test_crypto();
 }
 #endif // HAVE_NBGL
