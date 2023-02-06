@@ -169,6 +169,9 @@ DEFINES   += APPVERSION=\"$(APPVERSION)\"
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
 DEFINES       += HAVE_BLE_APDU # basic ledger apdu transport over BLE
+else ifeq ($(TARGET_NAME),TARGET_FATSTACKS)
+DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
+DEFINES       += HAVE_BLE_APDU # basic ledger apdu transport over BLE
 endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
@@ -279,6 +282,10 @@ SDK_SOURCE_PATH += lib_ux
 endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
+SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
+endif
+
+ifeq ($(TARGET_NAME),TARGET_FATSTACKS)
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 endif
 
