@@ -70,27 +70,11 @@ else
 ON_DEVICE_UNIT_TESTS=0
 endif
 
-ifeq ("$(NO_STACK_CANARY)","")
-ifeq ($(RELEASE_BUILD),0)
-DEFINES   += HAVE_BOLOS_APP_STACK_CANARY
-STACK_CANARY=1
-else
-STACK_CANARY=0
-endif
-else
-STACK_CANARY=0
-endif
-
 # Make environmental flags consistent with DEFINES
 ifneq ($(shell echo $(DEFINES) | grep -c HAVE_ON_DEVICE_UNIT_TESTS), 0)
 ON_DEVICE_UNIT_TESTS=1
 else
 ON_DEVICE_UNIT_TESTS=0
-endif
-ifeq ($(shell echo $(DEFINES) | grep -c HAVE_BOLOS_APP_STACK_CANARY), 0)
-NO_STACK_CANARY=0
-else
-NO_STACK_CANARY=1
 endif
 
 DEFINES   += APPNAME=\"$(APPNAME)\"
@@ -165,15 +149,11 @@ $(info TARGETS              $(MAKECMDGOALS))
 $(info RELEASE_BUILD        $(RELEASE_BUILD))
 $(info TARGET_NAME          $(TARGET_NAME))
 $(info ON_DEVICE_UNIT_TESTS $(ON_DEVICE_UNIT_TESTS))
-$(info STACK_CANARY         $(STACK_CANARY))
 $(info )
 endif
 endif
 
 ifeq ($(RELEASE_BUILD),1)
-ifneq ($(shell echo $(DEFINES) | grep -c HAVE_BOLOS_APP_STACK_CANARY),0)
-$(error HAVE_BOLOS_APP_STACK_CANARY should not be used for release builds);
-endif
 ifneq ($(shell echo $(DEFINES) | grep -c HAVE_ON_DEVICE_UNIT_TESTS),0)
 $(error HAVE_ON_DEVICE_UNIT_TESTS should not be used for release builds);
 endif
@@ -259,18 +239,18 @@ side_release: all
 	@echo
 	$(MAKE) clean
 
-	@# Make sure unit tests are run with stack canary
+	@# Build unit tests
 	@echo
-	@echo "SIDE RELEASE BUILD: Building with HAVE_BOLOS_APP_STACK_CANARY"
+	@echo "SIDE RELEASE BUILD"
 	@echo
-	@RELEASE_BUILD=0 NO_STACK_CANARY= $(MAKE) all
+	@RELEASE_BUILD=0 $(MAKE) all
 
-	@# Build release without stack canary
+	@# Build release
 	@$(MAKE) clean
 	@echo
-	@echo "SIDE RELEASE BUILD: Building without HAVE_BOLOS_APP_STACK_CANARY"
+	@echo "SIDE RELEASE BUILD"
 	@echo
-	@NO_STACK_CANARY=1 $(MAKE) all
+	@$(MAKE) all
 
 	@echo "Packaging release... ledger-app-mina-$(VERSION_TAG).tar.gz"
 
