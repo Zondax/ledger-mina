@@ -6,6 +6,10 @@
 
 #include "random_oracle_input.h"
 #include "utils.h"
+#include "transaction.h"
+
+#define NUM_BYTES_32 4
+#define NUM_BYTES_64 8
 
 // Add a field to the roinput.  The field to be added is converted to
 // little endian byte order for compatibility with Mina
@@ -80,26 +84,24 @@ void roinput_add_bytes(ROInput *input, const uint8_t *bytes, size_t len)
 
 void roinput_add_uint32(ROInput *input, const uint32_t x)
 {
-    const size_t NUM_BYTES = 4;
-    uint8_t le[NUM_BYTES];
+    uint8_t le[NUM_BYTES_32];
 
-    for (size_t i = 0; i < NUM_BYTES; ++i) {
+    for (size_t i = 0; i < NUM_BYTES_32; ++i) {
         le[i] = (uint8_t) (0xff & (x >> (8 * i)));
     }
 
-    roinput_add_bytes(input, le, NUM_BYTES);
+    roinput_add_bytes(input, le, NUM_BYTES_32);
 }
 
 void roinput_add_uint64(ROInput *input, const uint64_t x)
 {
-    const size_t NUM_BYTES = 8;
-    uint8_t le[NUM_BYTES];
+    uint8_t le[NUM_BYTES_64];
 
-    for (size_t i = 0; i < NUM_BYTES; ++i) {
+    for (size_t i = 0; i < NUM_BYTES_64; ++i) {
         le[i] = (uint8_t) (0xff & (x >> (8 * i)));
     }
 
-    roinput_add_bytes(input, le, NUM_BYTES);
+    roinput_add_bytes(input, le, NUM_BYTES_64);
 }
 
 void roinput_to_bytes(uint8_t *out, const ROInput *input)
@@ -169,10 +171,16 @@ int roinput_to_fields(Field *out, size_t len, const ROInput *input)
 
 int roinput_derive_message(uint8_t *out, const size_t len, const Keypair *kp, const ROInput *msg, const uint8_t network_id)
 {
-    Field   input_fields[msg->fields_capacity + 2];
-    uint8_t input_bits[msg->bits_capacity + SCALAR_BYTES + 1];
+    Field   input_fields[INPUT_FIELD_CNT + 2];
+    uint8_t input_bits[TX_BITSTRINGS_BYTES + SCALAR_BYTES + 1];
     ROInput input = roinput_create(input_fields, input_bits);
 
+    if (msg->fields_capacity > INPUT_FIELD_CNT) {
+        return -1;
+    }
+    if (msg->bits_capacity > TX_BITSTRINGS_BYTES) {
+        return -1;
+    }
     if (msg->fields_len > input.fields_capacity) {
         return -1;
     }
@@ -203,10 +211,16 @@ int roinput_derive_message(uint8_t *out, const size_t len, const Keypair *kp, co
 
 int roinput_hash_message(Field *out, const size_t len, const Affine *pub, const Field rx, const ROInput *msg)
 {
-    Field   input_fields[msg->fields_capacity + 3];
-    uint8_t input_bits[msg->bits_capacity];
+    Field   input_fields[INPUT_FIELD_CNT + 3];
+    uint8_t input_bits[TX_BITSTRINGS_BYTES];
     ROInput input = roinput_create(input_fields, input_bits);
 
+    if (msg->fields_capacity > INPUT_FIELD_CNT) {
+        return -1;
+    }
+    if (msg->bits_capacity > TX_BITSTRINGS_BYTES) {
+        return -1;
+    }
     if (msg->fields_len > input.fields_capacity) {
         return -1;
     }

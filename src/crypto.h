@@ -9,6 +9,8 @@
     #include <cx.h>
 #endif
 
+#define INPUT_FIELD_CNT 3
+
 #define BIP32_PATH_LEN 5
 #define BIP32_HARDENED_OFFSET 0x80000000
 

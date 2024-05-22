@@ -15,5 +15,7 @@ void sendResponse(uint8_t tx, bool approve) {
     // Send back the response, do not restart the event loop
     io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, tx);
     // Display back the original UX
+#ifdef HAVE_BAGL
     ui_idle();
+#endif
 }

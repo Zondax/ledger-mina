@@ -9,6 +9,7 @@
     #include <os.h>
 #endif
 
+static const char TICKER_WITH_SPACE[] = "MINA ";
 static const char B58_ALPHABET[] = {
     '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
@@ -72,90 +73,86 @@ int b58_encode(const unsigned char *in, unsigned char length,
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the standard MIT license.  See COPYING for more details.
  */
-static const int8_t B58_DIGITS_MAP[] = {
-	-1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-	-1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-	-1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-	-1, 0, 1, 2, 3, 4, 5, 6,  7, 8,-1,-1,-1,-1,-1,-1,
-	-1, 9,10,11,12,13,14,15, 16,-1,17,18,19,20,21,-1,
-	22,23,24,25,26,27,28,29, 30,31,32,-1,-1,-1,-1,-1,
-	-1,33,34,35,36,37,38,39, 40,41,42,43,-1,44,45,46,
-	47,48,49,50,51,52,53,54, 55,56,57,-1,-1,-1,-1,-1,
+
+/**
+ * Maximum length of input when decoding in base 58.
+ */
+#define MAX_DEC_INPUT_SIZE 164
+
+uint8_t const BASE58_TABLE[] = {
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  //
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  //
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  //
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  //
+    0xFF, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0xFF, 0xFF,  //
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,  //
+    0x10, 0xFF, 0x11, 0x12, 0x13, 0x14, 0x15, 0xFF, 0x16, 0x17, 0x18, 0x19,  //
+    0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,  //
+    0xFF, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B,  //
+    0xFF, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36,  //
+    0x37, 0x38, 0x39, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF                           //
 };
-typedef uint64_t b58_maxint_t;
-typedef uint32_t b58_almostmaxint_t;
-#define b58_almostmaxint_bits (sizeof(b58_almostmaxint_t) * 8)
-static const b58_almostmaxint_t b58_almostmaxint_mask = ((((b58_maxint_t)1) << b58_almostmaxint_bits) - 1);
-bool b58_decode(void *bin, size_t *binszp, const char *b58, size_t b58sz)
-{
-	size_t binsz = *binszp;
-	const unsigned char *b58u = (void*)b58;
-	unsigned char *binu = bin;
-	size_t outisz = (binsz + sizeof(b58_almostmaxint_t) - 1) / sizeof(b58_almostmaxint_t);
-	b58_almostmaxint_t outi[outisz];
-	b58_maxint_t t;
-	b58_almostmaxint_t c;
-	size_t i, j;
-	uint8_t bytesleft = binsz % sizeof(b58_almostmaxint_t);
-	b58_almostmaxint_t zeromask = bytesleft ? (b58_almostmaxint_mask << (bytesleft * 8)) : 0;
-	unsigned zerocount = 0;
 
-	if (!b58sz)
-		b58sz = strlen(b58);
+int b58_decode(const char *in, size_t in_len, uint8_t *out, size_t out_len) {
+    uint8_t tmp[MAX_DEC_INPUT_SIZE] = {0};
+    uint8_t buffer[MAX_DEC_INPUT_SIZE] = {0};
+    uint8_t j;
+    uint8_t start_at;
+    uint8_t zero_count = 0;
 
-	for (i = 0; i < outisz; ++i) {
-		outi[i] = 0;
-	}
+    if (in_len > MAX_DEC_INPUT_SIZE || in_len < 2) {
+        return -1;
+    }
 
-	// Leading zeros, just count
-	for (i = 0; i < b58sz && b58u[i] == '1'; ++i)
-		++zerocount;
+    memmove(tmp, in, in_len);
 
-	for ( ; i < b58sz; ++i)	{
-		if (b58u[i] & 0x80)
-			// High-bit set on invalid digit
-			return false;
-		if (B58_DIGITS_MAP[b58u[i]] == -1)
-			// Invalid base58 digit
-			return false;
-		c = (unsigned)B58_DIGITS_MAP[b58u[i]];
-		for (j = outisz; j--; ) {
-			t = ((b58_maxint_t)outi[j]) * 58 + c;
-			c = t >> b58_almostmaxint_bits;
-			outi[j] = t & b58_almostmaxint_mask;
-		}
-		if (c)
-			// Output number too big (carry to the next int32)
-			return false;
-		if (outi[0] & zeromask)
-			// Output number too big (last int32 filled too far)
-			return false;
-	}
+    for (uint8_t i = 0; i < in_len; i++) {
+        if (in[i] >= sizeof(BASE58_TABLE)) {
+            return -1;
+        }
 
-	j = 0;
-	if (bytesleft) {
-		for (i = bytesleft; i > 0; --i) {
-			*(binu++) = (outi[0] >> (8 * (i - 1))) & 0xff;
-		}
-		++j;
-	}
+        tmp[i] = BASE58_TABLE[(int) in[i]];
 
-	for (; j < outisz; ++j)	{
-		for (i = sizeof(*outi); i > 0; --i) {
-			*(binu++) = (outi[j] >> (8 * (i - 1))) & 0xff;
-		}
-	}
+        if (tmp[i] == 0xFF) {
+            return -1;
+        }
+    }
 
-	// Count canonical base58 byte count
-	binu = bin;
-	for (i = 0; i < binsz; ++i)	{
-		if (binu[i])
-			break;
-		--*binszp;
-	}
-	*binszp += zerocount;
+    while ((zero_count < in_len) && (tmp[zero_count] == 0)) {
+        ++zero_count;
+    }
 
-	return true;
+    j = in_len;
+    start_at = zero_count;
+    while (start_at < in_len) {
+        uint16_t remainder = 0;
+        for (uint8_t div_loop = start_at; div_loop < in_len; div_loop++) {
+            uint16_t digit256 = (uint16_t)(tmp[div_loop] & 0xFF);
+            uint16_t tmp_div = remainder * 58 + digit256;
+            tmp[div_loop] = (uint8_t)(tmp_div / 256);
+            remainder = tmp_div % 256;
+        }
+
+        if (tmp[start_at] == 0) {
+            ++start_at;
+        }
+
+        buffer[--j] = (uint8_t) remainder;
+    }
+
+    while ((j < in_len) && (buffer[j] == 0)) {
+        ++j;
+    }
+
+    int length = in_len - (j - zero_count);
+
+    if ((int) out_len < length) {
+        return -1;
+    }
+
+    memmove(out, buffer + j - zero_count, length);
+
+    return length;
 }
 
 uint32_t read_uint32_be(const uint8_t *buffer)
@@ -175,9 +172,9 @@ char *amount_to_string(char *buf, const size_t len, uint64_t amount)
 {
     // COIN = 1.000 000 000;
     size_t mantissa_len = 1;
-    for (uint64_t value = amount, len = 9; value && len > 0; value /= 10, len--) {
+    for (uint64_t value = amount, _len = 9; value && _len > 0; value /= 10, _len--) {
         if (value % 10 != 0) {
-            mantissa_len = len;
+            mantissa_len = _len;
             break;
         }
     }
@@ -188,7 +185,7 @@ char *amount_to_string(char *buf, const size_t len, uint64_t amount)
         characteristic_len++;
     }
     characteristic_len = characteristic_len ? characteristic_len : 1;
-    size_t total_len = characteristic_len + 1 + mantissa_len + 1;
+    size_t total_len = characteristic_len + 1 + mantissa_len + 1 + strlen(TICKER_WITH_SPACE);
     if (total_len > len) {
         *buf = '\0';
         return buf;
@@ -212,6 +209,10 @@ char *amount_to_string(char *buf, const size_t len, uint64_t amount)
 
             amount /= 10;
         }
+    }
+
+    for (size_t i = strlen(TICKER_WITH_SPACE); i > 0; i--) {
+        *(--end) = TICKER_WITH_SPACE[i - 1];
     }
 
     return buf;
@@ -270,9 +271,9 @@ void read_public_key_compressed(Compressed *out, const char *address)
         return;
     }
 
-    uint8_t bytes[40];
+    uint8_t bytes[40]= {0};
     size_t bytes_len = 40;
-    b58_decode(bytes, &bytes_len, address, MINA_ADDRESS_LEN - 1);
+    b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, bytes_len);
 
     struct bytes {
         uint8_t version;

@@ -1,4 +1,22 @@
+from ragger.conftest import configuration
 import pytest
+
+###########################
+### CONFIGURATION START ###
+###########################
+
+# You can configure optional parameters by overriding the value of ragger.configuration.OPTIONAL_CONFIGURATION
+# Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
+configuration.OPTIONAL.BACKEND_SCOPE = "function"
+
+configuration.OPTIONAL.CUSTOM_SEED = "course grief vintage slim tell hospital car maze model style elegant kitchen state purpose matrix gas grid enable frown road goddess glove canyon key"
+
+#########################
+### CONFIGURATION END ###
+#########################
+
+# Pull all features from the base ragger conftest using the overridden configuration
+pytest_plugins = ("ragger.conftest.base_conftest", )
 
 def pytest_addoption(parser):
     parser.addoption(

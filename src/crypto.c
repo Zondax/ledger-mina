@@ -575,7 +575,7 @@ bool validate_address(const char *address)
         return false;
     }
 
-    b58_decode(bytes, &bytes_len, address, MINA_ADDRESS_LEN - 1);
+    b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, bytes_len);
 
     struct bytes {
         uint8_t version;

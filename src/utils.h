@@ -17,7 +17,7 @@ char *value_to_string(char *buf, const size_t len, uint64_t value);
 
 int b58_encode(const unsigned char *in, unsigned char length, unsigned char *out,
                const unsigned char maxoutlen);
-bool b58_decode(void *bin, size_t *binszp, const char *b58, size_t b58sz);
+int b58_decode(const char *bin, size_t binszp, uint8_t *b58, size_t b58sz);
 
 void packed_bit_array_set(uint8_t *bits, const size_t i, const bool b);
 bool packed_bit_array_get(const uint8_t *bits, const size_t i);

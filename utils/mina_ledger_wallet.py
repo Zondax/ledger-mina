@@ -704,7 +704,7 @@ def ledger_init():
         if ex.sw == 26368:
             print("Ledger app not open")
         else:
-            print("Failed to communicate with ledger device (error = {})".format(ex.sw))
+            print("Failed to communicate with ledger device (error = {:02X})".format(ex.sw))
             sys.exit(233)
     except AssertionError:
         raise
@@ -1294,7 +1294,7 @@ if __name__ == "__main__":
         elif ex.sw == 27013:
             print("rejected")
         else:
-            print("Failed to communicate with ledger device (error = {})".format(ex.sw))
+            print("Failed to communicate with ledger device (error = {:02X})".format(ex.sw))
             sys.exit(233)
     except AssertionError:
         raise

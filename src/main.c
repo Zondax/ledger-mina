@@ -192,10 +192,12 @@ void app_main(void) {
     return;
 }
 
+#ifdef HAVE_BAGL
 // override point, but nothing more to do
 void io_seproxyhal_display(const bagl_element_t *element) {
     io_seproxyhal_display_default((bagl_element_t*)element);
 }
+#endif
 
 unsigned char io_event(unsigned char channel) {
     UNUSED(channel);
@@ -209,26 +211,33 @@ unsigned char io_event(unsigned char channel) {
             break;
 
         case SEPROXYHAL_TAG_BUTTON_PUSH_EVENT:
+#ifdef HAVE_BAGL
             UX_BUTTON_PUSH_EVENT(G_io_seproxyhal_spi_buffer);
+#endif  // HAVE_BAGL
             break;
 
         case SEPROXYHAL_TAG_STATUS_EVENT:
             if (G_io_apdu_media == IO_APDU_MEDIA_USB_HID && !(U4BE(G_io_seproxyhal_spi_buffer, 3) & SEPROXYHAL_TAG_STATUS_EVENT_FLAG_USB_POWERED)) {
                 THROW(EXCEPTION_IO_RESET);
             }
-            // no break is intentional
+            __attribute__((fallthrough)); 
         default:
             UX_DEFAULT_EVENT();
             break;
 
         case SEPROXYHAL_TAG_DISPLAY_PROCESSED_EVENT:
+#ifdef HAVE_BAGL
             UX_DISPLAYED_EVENT({});
+#endif  // HAVE_BAGL
+#ifdef HAVE_NBGL
+            UX_DEFAULT_EVENT();
+#endif  // HAVE_NBGL
             break;
 
         case SEPROXYHAL_TAG_TICKER_EVENT:
             UX_TICKER_EVENT(G_io_seproxyhal_spi_buffer,
             {
-            #if !defined(TARGET_NANOX) && !defined(TARGET_NANOS2)
+            #if defined(TARGET_NANOS)
                 if (UX_ALLOWED) {
                     if (ux_step_count) {
                     // prepare next screen
@@ -237,7 +246,7 @@ unsigned char io_event(unsigned char channel) {
                     UX_REDISPLAY();
                     }
                 }
-            #endif // TARGET_NANOX
+            #endif // TARGET_NANOS
             });
             break;
     }
@@ -322,17 +331,20 @@ __attribute__((section(".boot"))) int main(void) {
                 ui_idle();
 
 #ifdef HAVE_BLE
+                G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
                 BLE_power(0, NULL);
-                BLE_power(1, "Nano X");
+                BLE_power(1, NULL);
 #endif // HAVE_BLE
 
                 app_main();
             }
             CATCH(EXCEPTION_IO_RESET) {
                 // reset IO and UX before continuing
+                CLOSE_TRY;
                 continue;
             }
             CATCH_ALL {
+                CLOSE_TRY;
                 break;
             }
             FINALLY {
