@@ -19,45 +19,26 @@ typedef struct
 {
     nbgl_layoutTagValue_t tagValuePair[MAX_ELEM_CNT];
     nbgl_layoutTagValueList_t tagValueList;
-    nbgl_pageInfoLongPress_t infoLongPress;
-    uint8_t nbPairs;
 } TransactionContext_t;
 
 static TransactionContext_t transactionContext;
 
-static void prompt_cancel(void);
-
-static void approve_callback(void)
-{
-    nbgl_useCaseStatus("TRANSACTION\nSIGNED", true, ui_idle);
-}
-
-static void cancel_callback(void)
-{
-    sendResponse(0, false);
-    nbgl_useCaseStatus("Transaction\nrejected", false, ui_idle);
-}
-
-static void prompt_cancel(void) 
-{
-    nbgl_useCaseConfirm("Reject transaction?", "", "Yes, Reject", "Go back to transaction", cancel_callback);
-}
-
-static void start_processing_callback(bool confirm) 
+static void review_choice(bool confirm) 
 {
     if (confirm) 
     {
         nbgl_useCaseSpinner("Processing");
         sign_transaction(&_tx, &_ui);
-        approve_callback();
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_idle);
     }
     else 
     {
-        prompt_cancel();
+        sendResponse(0, false);
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_idle);
     }
 }
 
-static void continue_callback(void) {
+static void prepare_transaction_context(void) {
     uint8_t nbPairs = 0;
 
     // Network id
@@ -144,14 +125,6 @@ static void continue_callback(void) {
 
     transactionContext.tagValueList.pairs = transactionContext.tagValuePair;
     transactionContext.tagValueList.nbPairs = nbPairs;
-
-    transactionContext.infoLongPress.icon = &C_Mina_64px;
-    transactionContext.infoLongPress.longPressText = "Hold to sign";
-    transactionContext.infoLongPress.longPressToken = 1;
-    transactionContext.infoLongPress.tuneId = TUNE_TAP_CASUAL;
-    transactionContext.infoLongPress.text = "Sign Transaction";
-
-    nbgl_useCaseStaticReview(&transactionContext.tagValueList, &transactionContext.infoLongPress, "Reject transaction", start_processing_callback);
 }
 
 void ui_sign_tx(uint8_t *dataBuffer, uint8_t dataLength)
@@ -163,9 +136,17 @@ void ui_sign_tx(uint8_t *dataBuffer, uint8_t dataLength)
     #ifdef HAVE_ON_DEVICE_UNIT_TESTS
         nbgl_useCaseSpinner("Unit Tests ...");
         sign_transaction();
-        approve_callback();
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_idle);
     #else
-        nbgl_useCaseReviewStart(&C_Mina_64px, "Review Transaction", "", "Reject transaction", continue_callback, prompt_cancel);
+        prepare_transaction_context();
+        // Start review
+        nbgl_useCaseReview(TYPE_TRANSACTION,
+                           &transactionContext.tagValueList,
+                           &C_Mina_64px,
+                           "Review transaction",
+                           NULL,
+                           "Sign transaction",
+                           review_choice);
     #endif
 }
 #endif // HAVE_NBGL

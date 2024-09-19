@@ -60,6 +60,7 @@ You can choose which device to compile and load for by setting the `BOLOS_SDK` e
 * `BOLOS_SDK=$NANOX_SDK`
 * `BOLOS_SDK=$NANOSP_SDK`
 * `BOLOS_SDK=$STAX_SDK`
+* `BOLOS_SDK=$FLEX_SDK`
 
 By default this variable is set to build/load for Nano S.
 

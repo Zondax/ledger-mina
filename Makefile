@@ -20,14 +20,14 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --path "44'/12586'" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x240 $(COMMON_LOAD_PARAMS)
 
 # Add and push a new git tag to update the app version
 GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
-APPVERSION_N=1
-APPVERSION_P=2
+APPVERSION_N=2
+APPVERSION_P=0
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
@@ -37,6 +37,8 @@ ifeq ($(TARGET_NAME),TARGET_NANOS)
 	ICONNAME=icons/nanos_app_mina.gif
 else ifeq ($(TARGET_NAME),TARGET_STAX)
 	ICONNAME=icons/stax_app_mina.gif
+else ifeq ($(TARGET_NAME),TARGET_FLEX)
+	ICONNAME=icons/flex_app_mina.gif
 else
 	ICONNAME=icons/nanox_app_mina.gif
 endif
@@ -112,7 +114,7 @@ DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=$(shell echo -n $(WEBUSB_URL) | w
 DEFINES   += UNUSED\(x\)=\(void\)x
 DEFINES   += APPVERSION=\"$(APPVERSION)\"
 
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX TARGET_FLEX))
 DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
 DEFINES       += HAVE_BLE_APDU # basic ledger apdu transport over BLE
 endif
@@ -123,7 +125,7 @@ else
     DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 endif
 
-ifeq ($(TARGET_NAME),TARGET_STAX)
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
     DEFINES += NBGL_QRCODE
     SDK_SOURCE_PATH += qrcode
 else
@@ -212,11 +214,11 @@ include $(BOLOS_SDK)/Makefile.glyphs
 ### variables processed by the common makefile.rules of the SDK to grab source files and include dirs
 APP_SOURCE_PATH  += src
 SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl lib_u2f
-ifneq ($(TARGET_NAME),TARGET_STAX)
+ifneq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
 SDK_SOURCE_PATH += lib_ux
 endif
 
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX TARGET_FLEX))
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 endif
 

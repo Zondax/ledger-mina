@@ -141,39 +141,53 @@ void field_copy(Field b, const Field a)
 
 void field_add(Field c, const Field a, const Field b)
 {
-    cx_math_addm(c, a, b, FIELD_MODULUS, FIELD_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_addm_no_throw(c, a, b, FIELD_MODULUS, FIELD_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_addm fail");
 }
 
 void field_sub(Field c, const Field a, const Field b)
 {
-    cx_math_subm(c, a, b, FIELD_MODULUS, FIELD_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_subm_no_throw(c, a, b, FIELD_MODULUS, FIELD_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_subm fail");
 }
 
 void field_mul(Field c, const Field a, const Field b)
 {
-    cx_math_multm(c, a, b, FIELD_MODULUS, FIELD_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_multm_no_throw(c, a, b, FIELD_MODULUS, FIELD_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_multm fail");
 }
 
 void field_sq(Field b, const Field a)
 {
-    cx_math_multm(b, a, a, FIELD_MODULUS, FIELD_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_multm_no_throw(b, a, a, FIELD_MODULUS, FIELD_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_multm fail");
 }
 
 void field_inv(Field c, const Field a)
 {
-    cx_math_invprimem(c, a, FIELD_MODULUS, FIELD_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_invprimem_no_throw(c, a, FIELD_MODULUS, FIELD_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_invprimem fail");
 }
 
 void field_negate(Field c, const Field a)
 {
     // Ledger API expects inputs to be in range [0, FIELD_MODULUS)
-    cx_math_subm(c, FIELD_ZERO, a, FIELD_MODULUS, FIELD_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_subm_no_throw(c, FIELD_ZERO, a, FIELD_MODULUS, FIELD_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_subm fail");
 }
 
 // c = a^e mod m
 void field_pow(Field c, const Field a, const Field e)
 {
-    cx_math_powm(c, a, e, FIELD_BYTES, FIELD_MODULUS, FIELD_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_powm_no_throw(c, a, e, FIELD_BYTES, FIELD_MODULUS, FIELD_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_powm fail");
 }
 
 bool field_eq(const Field a, const Field b)
@@ -219,34 +233,46 @@ void scalar_copy(Scalar b, const Scalar a)
 
 void scalar_add(Scalar c, const Scalar a, const Scalar b)
 {
-    cx_math_addm(c, a, b, GROUP_ORDER, SCALAR_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_addm_no_throw(c, a, b, GROUP_ORDER, SCALAR_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_addm_no_throw fail");
 }
 
 void scalar_sub(Scalar c, const Scalar a, const Scalar b)
 {
-    cx_math_subm(c, a, b, GROUP_ORDER, SCALAR_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_subm_no_throw(c, a, b, GROUP_ORDER, SCALAR_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_subm_no_throw fail");
 }
 
 void scalar_mul(Scalar c, const Scalar a, const Scalar b)
 {
-    cx_math_multm(c, a, b, GROUP_ORDER, SCALAR_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_multm_no_throw(c, a, b, GROUP_ORDER, SCALAR_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_multm_no_throw fail");
 }
 
 void scalar_sq(Scalar b, const Scalar a)
 {
-    cx_math_multm(b, a, a, GROUP_ORDER, SCALAR_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_multm_no_throw(b, a, a, GROUP_ORDER, SCALAR_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_multm_no_throw fail");
 }
 
 void scalar_negate(Field b, const Field a)
 {
     // Ledger API expects inputs to be in range [0, GROUP_ORDER)
-    cx_math_subm(b, SCALAR_ZERO, a, GROUP_ORDER, SCALAR_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_subm_no_throw(b, SCALAR_ZERO, a, GROUP_ORDER, SCALAR_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_subm_no_throw fail");
 }
 
 // c = a^e mod m
 void scalar_pow(Scalar c, const Scalar a, const Scalar e)
 {
-    cx_math_powm(c, a, e, SCALAR_BYTES, GROUP_ORDER, SCALAR_BYTES);
+    cx_err_t cx_err;
+    cx_err = cx_math_powm_no_throw(c, a, e, SCALAR_BYTES, GROUP_ORDER, SCALAR_BYTES);
+    LEDGER_ASSERT(cx_err == CX_OK, "cx_math_powm_no_throw fail");
 }
 
 bool scalar_eq(const Scalar a, const Scalar b)
@@ -601,9 +627,16 @@ bool message_derive(Scalar out, const Keypair *kp, const ROInput *input, const u
 
     // blake2b hash
     cx_blake2b_t ctx;
-    cx_blake2b_init(&ctx, 256);
-    cx_hash(&ctx.header, 0, derive_msg, derive_len, NULL, 0);
-    cx_hash(&ctx.header, CX_LAST, NULL, 0, out, ctx.ctx.outlen);
+    if(CX_OK != cx_blake2b_init_no_throw(&ctx, 256)){
+        return false;
+    }
+
+    if(CX_OK != cx_hash_no_throw(&ctx.header, 0, derive_msg, derive_len, NULL, 0)){
+        return false;
+    }
+    if(CX_OK != cx_hash_no_throw(&ctx.header, CX_LAST, NULL, 0, out, ctx.ctx.outlen)){
+        return false;
+    }
 
     // Swap from little-endian to big-endian in place
     for (size_t i = SCALAR_BYTES; i > SCALAR_BYTES/2; i--) {

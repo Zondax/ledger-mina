@@ -1,22 +1,7 @@
 #!/usr/bin/env python3
 
-import pytest
-import argparse
-import sys
-import os
-import time
-from ragger.navigator import NavInsID, NavIns
-from contextlib import contextmanager
-from pathlib import Path
 
-from mina_client import *
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../utils/")
-import mina_ledger_wallet as mina
-
-TESTS_ROOT_DIR = Path(__file__).parent
-
-
-def test_fuzz(test_name, backend, firmware, navigator):
+def test_fuzz(backend):
         # Invalid message 1
         apdu = bytearray.fromhex("")
         assert(not backend.send_raw(apdu))
