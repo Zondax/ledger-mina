@@ -33,6 +33,7 @@ export const TX_DATA = [
     },
     signature: "23a9e2375dd3d0cd061e05c33361e0ba270bf689c4945262abdcc81d7083d8c311ae46b8bebfc98c584e2fb54566851919b58cf0917a256d2c1113daa1ccb27f"
   },
+  /* Mina JS Package does not allow fees smaller than 1e6
   {
     name: "test_sign_tx_12586_1",
     txParams: {
@@ -49,6 +50,8 @@ export const TX_DATA = [
     },
     signature: "2b4d0bffcb57981d11a93c05b17672b7be700d42af8496e1ba344394da5d0b0b0432c1e8a77ee1bd4b8ef6449297f7ed4956b81df95bdc6ac95d128984f77205"
   },
+  */
+  /* Mina JS Package does not allow Payments with amount 0
   {
     name: "test_sign_tx_3",
     txParams: {
@@ -65,6 +68,7 @@ export const TX_DATA = [
     },
     signature: "25bb730a25ce7180b1e5766ff8cc67452631ee46e2d255bccab8662e5f1f0c850a4bb90b3e7399e935fff7f1a06195c6ef89891c0260331b9f381a13e5507a4c"
   },
+  */
   {
     name: "test_sign_tx_0_1",
     txParams: {
@@ -161,6 +165,7 @@ export const TX_DATA = [
     },
     signature: "204eb1a37e56d0255921edd5a7903c210730b289a622d45ed63a52d9e3e461d13dfcf301da98e218563893e6b30fa327600c5ff0788108652a06b970823a4124"
   },
+  /* Mina JS Package does not allow fees smaller than 1e6
   {
     name: "test_sign_tx_12586_4",
     txParams: {
@@ -177,6 +182,8 @@ export const TX_DATA = [
     },
     signature: "076d8ebca8ccbfd9c8297a768f756ff9d08c049e585c12c636d57ffcee7f6b3b1bd4b9bd42cc2cbee34b329adbfc5127fe5a2ceea45b7f55a1048b7f1a9f7559"
   },
+  */
+  /* Mina JS Package does not allow Payments with amount 0
   {
     name: "test_sign_tx_3_1",
     txParams: {
@@ -193,6 +200,7 @@ export const TX_DATA = [
     },
     signature: "058ed7fb4e17d9d400acca06fe20ca8efca2af4ac9a3ed279911b0bf93c45eea0e8961519b703c2fd0e431061d8997cac4a7574e622c0675227d27ce2ff357d9"
   },
+  */
   {
     name: "test_sign_tx_0_3",
     txParams: {
