@@ -27,11 +27,3 @@ export const defaultOptions = {
   custom: `-s "${APP_SEED}"`,
   X11: false,
 }
-
-export function setStartText(m: IDeviceModel) {
-  if (isTouchDevice(m.name)) {
-    defaultOptions.startText = 'This app enables'
-  } else {
-    defaultOptions.startText = 'Ready'
-  }
-}

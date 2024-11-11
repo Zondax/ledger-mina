@@ -14,19 +14,19 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import Zemu, { ButtonKind, IDeviceModel, isTouchDevice, TouchNavigation, zondaxMainmenuNavigation } from '@zondax/zemu'
+import Zemu, { ButtonKind, DEFAULT_START_OPTIONS, IDeviceModel, isTouchDevice, TouchNavigation, zondaxMainmenuNavigation } from '@zondax/zemu'
 import { MinaLedgerJS } from '@mina-wallet-adapter/mina-ledger-js'
-import { PATH, defaultOptions, models, setStartText } from './common'
+import { PATH, defaultOptions, models } from './common'
 
 jest.setTimeout(60000)
 
-const expected_pk = 'B62qm8nLYdyErJeR3yQQJs1PX56zdoYHo5dKqvYbYoFU4zEok3wWT74'
+const expected_pk = 'B62qnzbXmRNo9q32n4SNu2mpB8e7FYYLH8NmaX6oFCBYjjQ8SbD7uzV'
 
 describe('Standard', function () {
   test.concurrent.each(models)('can start and stop container', async function (m) {
     const sim = new Zemu(m.path)
     try {
-      setStartText(m)
+      setTextOptionsStandardTests(m)
       await sim.start({ ...defaultOptions, model: m.name })
     } finally {
       await sim.close()
@@ -36,7 +36,7 @@ describe('Standard', function () {
   test.concurrent.each(models)('main menu', async function (m) {
     const sim = new Zemu(m.path)
     try {
-      setStartText(m)
+      setTextOptionsStandardTests(m)
       await sim.start({ ...defaultOptions, model: m.name })
       let nav
       if (isTouchDevice(m.name)) {
@@ -56,7 +56,7 @@ describe('Standard', function () {
   test.concurrent.each(models)('get app version', async function (m) {
     const sim = new Zemu(m.path)
     try {
-      setStartText(m)
+      setTextOptionsStandardTests(m)
       await sim.start({ ...defaultOptions, model: m.name })
       const app = new MinaLedgerJS(sim.getTransport())
 
@@ -69,25 +69,43 @@ describe('Standard', function () {
     }
   })
 
-  // TODO: Test multiple accounts
-  /*
+  // TODO: Check different accounts
   test.concurrent.each(models)('get address', async function (m) {
     const sim = new Zemu(m.path)
     try {
-      setStartText(m)
+      setTextOptionsStandardTests(m)
       await sim.start({ ...defaultOptions, model: m.name })
       const app = new MinaLedgerJS(sim.getTransport())
 
-      const resp = await app.getAddress()
+      const reqGetAddress = app.getAddress()
 
-      if (resp.publicKey) {
-         console.log("Public key:", Buffer.from(resp.publicKey).toString('hex'))
+      // Navigate and approve
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+
+      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-get-address`, true)
+
+      if (!isTouchDevice(m.name)) {
+        await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-get-address`, 'Approve', true, 3)
       }
+
+      const resp = await reqGetAddress
 
       expect(resp.publicKey).toEqual(expected_pk)
     } finally {
       await sim.close()
     }
   })
-    */
 })
+
+// TODO: Don't overwrite defaults, create new object
+function setTextOptionsStandardTests(m: IDeviceModel) {
+  if (isTouchDevice(m.name)) {
+    defaultOptions.approveAction = 15 /* ButtonKind.ConfirmYesButton */
+    defaultOptions.approveKeyword = 'Confirm'
+    defaultOptions.startText = 'This app enables'
+  } else {
+    defaultOptions.approveAction = DEFAULT_START_OPTIONS.approveAction
+    defaultOptions.approveKeyword = 'Generate|Approve'
+    defaultOptions.startText = DEFAULT_START_OPTIONS.startText
+  }
+}
