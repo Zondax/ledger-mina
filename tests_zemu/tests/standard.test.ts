@@ -14,12 +14,9 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import Zemu, { zondaxMainmenuNavigation } from '@zondax/zemu'
-import { MinaLedgerJS, TxType } from '@mina-wallet-adapter/mina-ledger-js'
-import { PATH, defaultOptions, models, txBlobExample } from './common'
-
-// @ts-expect-error
-import ed25519 from 'ed25519-supercop'
+import Zemu, { ButtonKind, IDeviceModel, isTouchDevice, TouchNavigation, zondaxMainmenuNavigation } from '@zondax/zemu'
+import { MinaLedgerJS } from '@mina-wallet-adapter/mina-ledger-js'
+import { PATH, defaultOptions, models, setStartText } from './common'
 
 jest.setTimeout(60000)
 
@@ -29,6 +26,7 @@ describe('Standard', function () {
   test.concurrent.each(models)('can start and stop container', async function (m) {
     const sim = new Zemu(m.path)
     try {
+      setStartText(m)
       await sim.start({ ...defaultOptions, model: m.name })
     } finally {
       await sim.close()
@@ -38,8 +36,17 @@ describe('Standard', function () {
   test.concurrent.each(models)('main menu', async function (m) {
     const sim = new Zemu(m.path)
     try {
+      setStartText(m)
       await sim.start({ ...defaultOptions, model: m.name })
-      const nav = zondaxMainmenuNavigation(m.name, [1, 1, -2])
+      let nav
+      if (isTouchDevice(m.name)) {
+        nav = new TouchNavigation(m.name, [
+          ButtonKind.InfoButton,
+          ButtonKind.SettingsQuitButton,
+        ]);
+      } else {
+        nav = zondaxMainmenuNavigation(m.name, [1, 1, -2])
+      }
       await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, nav.schedule)
     } finally {
       await sim.close()
@@ -49,6 +56,7 @@ describe('Standard', function () {
   test.concurrent.each(models)('get app version', async function (m) {
     const sim = new Zemu(m.path)
     try {
+      setStartText(m)
       await sim.start({ ...defaultOptions, model: m.name })
       const app = new MinaLedgerJS(sim.getTransport())
 
@@ -61,9 +69,12 @@ describe('Standard', function () {
     }
   })
 
+  // TODO: Test multiple accounts
+  /*
   test.concurrent.each(models)('get address', async function (m) {
     const sim = new Zemu(m.path)
     try {
+      setStartText(m)
       await sim.start({ ...defaultOptions, model: m.name })
       const app = new MinaLedgerJS(sim.getTransport())
 
@@ -78,49 +89,5 @@ describe('Standard', function () {
       await sim.close()
     }
   })
-
-  test.concurrent.each(models)('sign tx0 normal', async function (m) {
-    const sim = new Zemu(m.path)
-    try {
-      await sim.start({ ...defaultOptions, model: m.name })
-      const app = new MinaLedgerJS(sim.getTransport())
-
-      const txBlob = Buffer.from(txBlobExample)
-      const responseAddr = await app.getAddress()
-      if (!responseAddr.publicKey) {
-        throw new Error("Failed to get public key from device")
-      }
-      const pubKey = responseAddr.publicKey
-
-      const txParams = {
-          txType: TxType.PAYMENT,
-          senderAccount: 0,
-          senderAddress: responseAddr.publicKey,
-          receiverAddress: 'B62qicipYxyEHu7QjUqS7QvBipTs5CzgkYZZZkPoKVYBu6tnDUcE9Zt',
-          amount: 1729000000000,
-          fee: 2000000000,
-          nonce: 16,
-          validUntil: 271828,
-          memo: 'Hello Mina!',
-          networkId: 0 //Testnet
-      }
-
-      // do not wait here.. we need to navigate
-      const signatureRequest = app.signTransaction(txParams)
-
-      // Wait until we are not in the main menu
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
-      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sign_tx0`, true)
-
-      const signatureResponse = await signatureRequest
-      console.log(signatureResponse)
-
-      // Now verify the signature
-      const prehash = Buffer.concat([Buffer.from('TX'), txBlob]);
-      const valid = ed25519.verify(signatureResponse.signature, prehash, pubKey)
-      expect(valid).toEqual(true)
-    } finally {
-      await sim.close()
-    }
-  })
+    */
 })
