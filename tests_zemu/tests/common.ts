@@ -2,7 +2,6 @@ import { IDeviceModel, DEFAULT_START_OPTIONS, isTouchDevice } from '@zondax/zemu
 
 import { resolve } from 'path'
 
-//export const APP_SEED = 'equip will roof matter pink blind book anxiety banner elbow sun young'
 export const APP_SEED = 'course grief vintage slim tell hospital car maze model style elegant kitchen state purpose matrix gas grid enable frown road goddess glove canyon key'
 
 const APP_PATH_S = resolve('../build/nanos/bin/app.elf')
