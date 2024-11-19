@@ -4,7 +4,7 @@
 
 #define SETTING_INFO_NB 4
 static const char* const infoTypes[SETTING_INFO_NB] = {"Version", "Developer", "Modifications by", "Copyright"};
-static const char* const infoContents[SETTING_INFO_NB] = {APPVERSION, "jspada", "Zondax AG", "(c) 2024 Ledger"};
+static const char* const infoContents[SETTING_INFO_NB] = {APPVERSION, "Jspada", "Zondax AG", "(c) 2024 Ledger"};
 
 static const nbgl_contentInfoList_t infoList = {
     .nbInfos = SETTING_INFO_NB,

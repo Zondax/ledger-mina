@@ -38,13 +38,20 @@ describe('Standard', function () {
       const options = setTextOptionsStandardTests(m)
       await sim.start({ ...options, model: m.name })
       let nav
-      if (isTouchDevice(m.name)) {
+      if (m.name === 'flex') {
+        nav = new TouchNavigation(m.name, [
+          ButtonKind.InfoButton,
+          ButtonKind.NavRightButton,
+          ButtonKind.SettingsQuitButton,
+        ]);
+      } else if (m.name === 'stax') {
+        // Stax main menu fits in a single screen
         nav = new TouchNavigation(m.name, [
           ButtonKind.InfoButton,
           ButtonKind.SettingsQuitButton,
         ]);
       } else {
-        nav = zondaxMainmenuNavigation(m.name, [1, 1, -2])
+        nav = zondaxMainmenuNavigation(m.name, [1, 1, 1, 1, 1, -5])
       }
       await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, nav.schedule)
     } finally {
