@@ -541,8 +541,20 @@ void generate_keypair(Keypair *keypair, const uint32_t account)
         0
     };
 
+    unsigned char raw_privkey[64] = {0};
+    
     // Generate private key
-    os_perso_derive_node_bip32(CX_CURVE_256K1, bip32_path, BIP32_PATH_LEN, keypair->priv, NULL);
+    if (CX_OK != os_derive_bip32_no_throw(CX_CURVE_256K1, bip32_path, BIP32_PATH_LEN, raw_privkey, NULL)) {
+        // Clear sensitive data from the stack
+        explicit_bzero(raw_privkey, sizeof(raw_privkey));
+        return;
+    }
+    
+    memmove(keypair->priv, raw_privkey, SCALAR_BYTES);
+    
+    // Clear sensitive data from the stack
+    explicit_bzero(raw_privkey, sizeof(raw_privkey));
+    
     scalar_from_bytes(keypair->priv);
 
     // Checking cached_keypair.pub is not NULL is a workaround for the linker.
