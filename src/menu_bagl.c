@@ -27,8 +27,29 @@ UX_STEP_NOCB(
       "Version",
       APPVERSION,
     });
-UX_STEP_VALID(
+UX_STEP_NOCB(
     ux_idle_flow_3_step,
+    bn,
+    {
+      "Developer",
+      "Jspada",
+    });
+UX_STEP_NOCB(
+    ux_idle_flow_4_step,
+    bn,
+    {
+      "Modifications by",
+      "Zondax AG",
+    });
+UX_STEP_NOCB(
+    ux_idle_flow_5_step,
+    bn,
+    {
+      "Copyright",
+      "(c) 2024 Ledger",
+    });
+UX_STEP_VALID(
+    ux_idle_flow_6_step,
     pb,
     os_sched_exit(-1),
     {
@@ -40,6 +61,9 @@ UX_FLOW(ux_idle_flow,
   &ux_idle_flow_1_step,
   &ux_idle_flow_2_step,
   &ux_idle_flow_3_step,
+  &ux_idle_flow_4_step,
+  &ux_idle_flow_5_step,
+  &ux_idle_flow_6_step,
   FLOW_LOOP
 );
 
