@@ -27,9 +27,12 @@
 
 #include <os.h>
 #include <string.h>
+#include <os_io_seproxyhal.h>
 
 #include "crypto.h"
 #include "poseidon.h"
+
+#define HEARTBEAT_INTERVAL 20
 
 // Round constants Pasta Fp (first 64)
 static const Field round_keys[ROUNDS][SPONGE_SIZE] = {
@@ -1466,9 +1469,13 @@ void sbox(Field xa, const Field x) // 09179b
 void poseidon_permutation(State s)
 {
     Field tmp;
-
+    uint8_t heartbeat_counter = 0;
     // Full rounds
     for (size_t r = 0; r < FULL_ROUNDS; r++) {
+        if (++heartbeat_counter >= HEARTBEAT_INTERVAL) {
+            io_seproxyhal_io_heartbeat();
+            heartbeat_counter = 0;
+        }
         // ark
         for (size_t i = 0; i < SPONGE_SIZE; i++) {
             field_copy(tmp, s[i]);
@@ -1509,8 +1516,13 @@ void poseidon_update(State s, const Field *input, const size_t len)
 {
     Field tmp;
     size_t pairs = len / 2;
+    uint8_t heartbeat_counter = 0;
 
     for (size_t i = 0; i < pairs; ++i) {
+        if (++heartbeat_counter >= HEARTBEAT_INTERVAL) {
+            io_seproxyhal_io_heartbeat();
+            heartbeat_counter = 0;
+        }
         field_copy(tmp, s[0]);
         field_add(s[0], tmp, input[2*i]);
 

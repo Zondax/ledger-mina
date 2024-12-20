@@ -23,6 +23,8 @@
 #include "globals.h"
 #include "random_oracle_input.h"
 
+#define HEARTBEAT_INTERVAL 20
+
 // Base field Fp
 static const Field FIELD_MODULUS = {
     0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -402,7 +404,12 @@ void group_scalar_mul(Group *q, const Scalar k, const Group *p)
     }
 
     Group t0;
+    uint8_t heartbeat_counter = 0;
     for (size_t i = 0; i < SCALAR_BITS; i++) {
+        if (++heartbeat_counter >= HEARTBEAT_INTERVAL) {
+            io_seproxyhal_io_heartbeat();
+            heartbeat_counter = 0;
+        }
         uint8_t di = (k[i / 8] >> (7 - (i % 8))) & 0x01;
 
         // q = 2q
@@ -489,7 +496,9 @@ void affine_scalar_mul(Affine *q, const Scalar k, const Affine *p)
 {
     Group pp, pq;
     affine_to_group(&pp, p);
+    io_seproxyhal_io_heartbeat();
     group_scalar_mul(&pq, k, &pp);
+    io_seproxyhal_io_heartbeat();
     affine_from_group(q, &pq);
 }
 
@@ -624,6 +633,8 @@ bool message_derive(Scalar out, const Keypair *kp, const ROInput *input, const u
     if (derive_len < 0) {
         return false;
     }
+
+    io_seproxyhal_io_heartbeat();
 
     // blake2b hash
     cx_blake2b_t ctx;
