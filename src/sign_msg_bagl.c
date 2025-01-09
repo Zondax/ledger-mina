@@ -75,7 +75,13 @@ UX_STEP_VALID(
     }
 );
 
-UX_FLOW(ux_sign_msg_flow,
+UX_FLOW(ux_sign_msg_flow_testnet,
+        &ux_sign_msg_flow_topic_step,
+        &ux_sign_msg_flow_msg_step,
+        &ux_sign_msg_flow_approve_step,
+        &ux_sign_msg_flow_reject_step);
+
+UX_FLOW(ux_sign_msg_flow_testnet,
         &ux_sign_msg_flow_topic_step,
         &ux_sign_msg_flow_network_step,
         &ux_sign_msg_flow_msg_step,
@@ -88,7 +94,12 @@ UX_FLOW(ux_sign_msg_flow,
 void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
 {
     strncpy(_msg, (char *) dataBuffer + MSG_OFFSET, dataLength - MSG_OFFSET);
-    ux_flow_init(0, GET_FLOW_PTR(ux_sign_msg_flow), NULL);
+
+    if (dataBuffer[NETWORK_OFFSET] == MAINNET_ID) {
+        ux_flow_init(0, GET_FLOW_PTR(ux_sign_msg_flow), NULL);
+    } else {
+        ux_flow_init(0, GET_FLOW_PTR(ux_sign_msg_flow_testnet), NULL);
+    }
 }
 
 #endif // HAVE_BAGL

@@ -61,6 +61,8 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
 {
     strncpy(_msg, (char *) dataBuffer + MSG_OFFSET, dataLength - MSG_OFFSET);
 
+    _netId = dataBuffer[NETWORK_OFFSET];
+
     prepare_msg_context();
     nbgl_useCaseReview(TYPE_TRANSACTION,
                         &messageContext.tagValueList,
