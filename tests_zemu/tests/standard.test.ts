@@ -15,7 +15,7 @@
  ******************************************************************************* */
 
 import Zemu, { ButtonKind, DEFAULT_START_OPTIONS, IDeviceModel, isTouchDevice, TouchNavigation, zondaxMainmenuNavigation } from '@zondax/zemu'
-import { MinaLedgerJS } from '@mina-wallet-adapter/mina-ledger-js'
+import { MinaApp } from '@zondax/ledger-mina-js'
 import { PATH, defaultOptions, models } from './common'
 import { ADDRESS_DATA } from './addresses'
 
@@ -64,16 +64,33 @@ describe('Standard', function () {
     try {
       const options = setTextOptionsStandardTests(m)
       await sim.start({ ...options, model: m.name })
-      const app = new MinaLedgerJS(sim.getTransport())
+      const app = new MinaApp(sim.getTransport())
 
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.0.3')
+      expect(resp.version).toEqual('1.3.1')
     } finally {
       await sim.close()
     }
   })
+
+  test.concurrent.each(models)('get app name', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      const options = setTextOptionsStandardTests(m)
+      await sim.start({ ...options, model: m.name })
+      const app = new MinaApp(sim.getTransport())
+
+      const resp = await app.getAppName()
+      console.log(resp)
+
+      expect(resp.name).toEqual('Mina')
+    } finally {
+      await sim.close()
+    }
+  })
+
 
 describe.each(ADDRESS_DATA)('get address', function (data) {
   test.concurrent.each(models)(`${data.name}`, async function (m) {
@@ -81,7 +98,7 @@ describe.each(ADDRESS_DATA)('get address', function (data) {
     try {
       const options = setTextOptionsStandardTests(m)
       await sim.start({ ...options, model: m.name })
-      const app = new MinaLedgerJS(sim.getTransport())
+      const app = new MinaApp(sim.getTransport())
 
       const reqGetAddress = app.getAddress(data.account)
 

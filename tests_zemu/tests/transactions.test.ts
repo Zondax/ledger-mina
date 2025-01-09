@@ -1,6 +1,6 @@
 import Zemu, { DEFAULT_START_OPTIONS, IDeviceModel, isTouchDevice } from "@zondax/zemu"
 import { defaultOptions, models } from "./common"
-import { MinaLedgerJS } from "@mina-wallet-adapter/mina-ledger-js"
+import { MinaApp } from "@zondax/ledger-mina-js"
 import { TX_DATA } from "./transactions"
 
 jest.setTimeout(60000)
@@ -11,7 +11,7 @@ describe.each(TX_DATA)('Tx transfer', function (data) {
     try {
       setTextOptions(m)
       await sim.start({ ...defaultOptions, model: m.name })
-      const app = new MinaLedgerJS(sim.getTransport())
+      const app = new MinaApp(sim.getTransport())
 
       // do not wait here.. we need to navigate
       const signatureRequest = app.signTransaction(data.txParams)
