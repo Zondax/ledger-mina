@@ -82,6 +82,24 @@ void roinput_add_bytes(ROInput *input, const uint8_t *bytes, size_t len)
     input->bits_len += 8 * len;
 }
 
+void roinput_add_bytes_le(ROInput *input, const uint8_t *bytes, size_t len)
+{
+    size_t remaining = (int)input->bits_capacity * 8 - (int)input->bits_len;
+    if (remaining < 8 * len) {
+        return;
+    }
+    // LSB bits
+    size_t k = input->bits_len;
+    for (size_t i = 0; i < len; ++i) {
+        const uint8_t b = bytes[i];
+        for (size_t j = 0; j < 8; ++j) {
+            packed_bit_array_set(input->bits, k, (b >> (7-j)) & 1);
+            ++k;
+        }
+    }
+    input->bits_len += 8 * len;
+}
+
 void roinput_add_uint32(ROInput *input, const uint32_t x)
 {
     uint8_t le[NUM_BYTES_32];
