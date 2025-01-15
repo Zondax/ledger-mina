@@ -538,6 +538,10 @@ void generate_pubkey(Affine *pub_key, const Scalar priv_key)
 
 void generate_keypair(Keypair *keypair, const uint32_t account)
 {
+    static Keypair cached_keypair;
+    static uint32_t last_account;
+    Affine aff_zero = { .x = { 0 }, .y = { 0 } };
+
     const uint32_t bip32_path[BIP32_PATH_LEN] = {
         44      | BIP32_HARDENED_OFFSET,
         12586   | BIP32_HARDENED_OFFSET, // 0x312a
@@ -546,12 +550,34 @@ void generate_keypair(Keypair *keypair, const uint32_t account)
         0
     };
 
+    unsigned char raw_privkey[64] = {0};
+    
     // Generate private key
-    os_perso_derive_node_bip32(CX_CURVE_256K1, bip32_path, BIP32_PATH_LEN, keypair->priv, NULL);
+    if (CX_OK != os_derive_bip32_no_throw(CX_CURVE_256K1, bip32_path, BIP32_PATH_LEN, raw_privkey, NULL)) {
+        // Clear sensitive data from the stack
+        explicit_bzero(raw_privkey, sizeof(raw_privkey));
+        return;
+    }
+    
+    memmove(keypair->priv, raw_privkey, SCALAR_BYTES);
+    
+    // Clear sensitive data from the stack
+    explicit_bzero(raw_privkey, sizeof(raw_privkey));
+    
     scalar_from_bytes(keypair->priv);
 
-    // Generate public key
-    generate_pubkey(&keypair->pub, keypair->priv);
+    // Checking cached_keypair.pub is not NULL is a workaround for the linker.
+    // Current linker script does not allow .data section to be non-empty (last_account can't be initialized).
+    if (account == last_account && memcmp(&cached_keypair.pub, &aff_zero, sizeof(Affine)) != 0) {
+        // Private key can't be cached for security reasons, so it is always computed (deterministically)
+        memcpy(&keypair->pub, &cached_keypair.pub, sizeof(Affine));
+    } else {
+        // Generate public key
+        generate_pubkey(&keypair->pub, keypair->priv);
+    }
+
+    last_account = account;
+    memcpy(&cached_keypair, keypair, sizeof(Keypair));
 
     return;
 }
