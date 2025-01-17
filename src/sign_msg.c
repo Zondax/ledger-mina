@@ -29,7 +29,7 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
     uint32_t  account;
     uint8_t network;
 
-    if ((dataLength < ACCOUNT_LENGTH + NETWORK_LENGTH) || (dataLength + 5 > 255)) {
+    if ((dataLength < ACCOUNT_LENGTH + NETWORK_LENGTH) || (dataLength > 5 + TX_BITSTRINGS_BYTES)) {
         THROW(INVALID_PARAMETER);
     }
 

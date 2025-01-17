@@ -12,7 +12,10 @@
 
 #define MAX_ELEM_CNT 5
 
-static char _msg[256];
+struct {
+    char msgDataBuf[256];
+    uint8_t dataBufLength;
+} _msgData;
 static uint8_t _netId;
 
 typedef struct 
@@ -28,7 +31,7 @@ static void review_choice(bool confirm)
     if (confirm) 
     {
         nbgl_useCaseSpinner("Processing");
-        sign_message((uint8_t *) _msg, strlen(_msg));
+        sign_message((uint8_t *) _msgData.msgDataBuf, _msgData.dataBufLength),
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_idle);
     }
     else 
@@ -50,7 +53,7 @@ static void prepare_msg_context(void) {
 
 
     messageContext.tagValuePair[nbPairs].item = "Message";
-    messageContext.tagValuePair[nbPairs].value = _msg;
+    messageContext.tagValuePair[nbPairs].value = _msgData.msgDataBuf + MSG_OFFSET;
     nbPairs++;
 
     messageContext.tagValueList.pairs = messageContext.tagValuePair;
@@ -59,7 +62,8 @@ static void prepare_msg_context(void) {
 
 void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
 {
-    strncpy(_msg, (char *) dataBuffer + MSG_OFFSET, dataLength - MSG_OFFSET);
+    _msgData.dataBufLength = dataLength;
+    memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
 
     _netId = dataBuffer[NETWORK_OFFSET];
 
