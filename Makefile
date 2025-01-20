@@ -20,7 +20,7 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x240 $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x200 $(COMMON_LOAD_PARAMS)
 
 # Add and push a new git tag to update the app version
 GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
