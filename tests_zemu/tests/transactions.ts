@@ -266,3 +266,27 @@ export const TX_DATA = [
     signature: "093f9ef0e4e051279da0a3ded85553847590ab739ee1bfd59e5bb30f98ed8a001a7a60d8506e2572164b7a525617a09f17e1756ac37555b72e01b90f37271595"
   }
 ]
+
+export const MSG_DATA = [
+  {
+    publicKey: "B62qnzbXmRNo9q32n4SNu2mpB8e7FYYLH8NmaX6oFCBYjjQ8SbD7uzV",
+    privateKey: 'EKDt66ubGg5SDiwcQABWfFZaruq6idcyrLLfyZQjoH4CN3PHEiNj',
+    name: "test_sign_msg_1",
+    msg :{
+      msg: "Hello Mina!",
+      account: 0,
+      networkId: 0,
+    }
+  },
+  {
+    publicKey: "B62qnzbXmRNo9q32n4SNu2mpB8e7FYYLH8NmaX6oFCBYjjQ8SbD7uzV",
+    privateKey: 'EKDt66ubGg5SDiwcQABWfFZaruq6idcyrLLfyZQjoH4CN3PHEiNj',
+    name: "test_sign_msg_2",
+    msg :{
+      msg: "This is a test for Mina's Ledger app Sign Message on Mainnet",
+      account: 0,
+      networkId: 1,
+    }
+  }
+]
+
