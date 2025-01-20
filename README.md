@@ -156,11 +156,11 @@ addresses, sign transaction and submit them to the Mina network.
 ```bash
 $ ./utils/mina_ledger_wallet.py -h
 usage: mina_ledger_wallet.py [-h] [--verbose]
-                             {get-address,get-balance,send-payment,delegate}
+                             {get-address,get-balance,send-payment,delegate,sign-message}
                              ...
 
 positional arguments:
-  {get-address,get-balance,send-payment,delegate}
+  {get-address,get-balance,send-payment,delegate,sign-message}
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -206,6 +206,13 @@ $ ./utils/mina_ledger_wallet.py delegate 1 B62qicipYxyEHu7QjUqS7QvBipTs5CzgkYZZZ
 ```
 
 This delegates the entire balance of hardware wallet account 1 (`B62qicipYxyEHu7QjUqS7QvBipTs5CzgkYZZZkPoKVYBu6tnDUcE9Zt`) to delegate `B62qrPN5Y5yq8kGE3FbVKbGTdTAJNdtNtB5sNVpxyRwWGcDEhpMzc8g`.
+
+**Sign message**
+
+```bash
+$ ./utils/mina_ledger_wallet.py sign-message 1 "Hello, world!"
+```
+This signs the message `"Hello, world!"` with hardware wallet account 1.
 
 ## Documentation
 This follows the specification available in the [`api.asc`](https://github.com/LedgerHQ/ledger-app-boilerplate/blob/master/doc/api.asc).
