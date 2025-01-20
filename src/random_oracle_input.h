@@ -25,6 +25,7 @@ void roinput_add_field(ROInput *input, const Field a);
 void roinput_add_scalar(ROInput *input, const Scalar a);
 void roinput_add_bit(ROInput *input, const bool b);
 void roinput_add_bytes(ROInput *input, const uint8_t *bytes, size_t len);
+void roinput_add_bytes_le(ROInput *input, const uint8_t *bytes, size_t len);
 void roinput_add_uint32(ROInput *input, const uint32_t x);
 void roinput_add_uint64(ROInput *input, const uint64_t x);
 int roinput_derive_message(uint8_t *out, const size_t len, const Keypair *kp, const ROInput *msg, const uint8_t network_id);

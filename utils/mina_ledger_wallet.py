@@ -128,6 +128,10 @@ if __name__ == "__main__":
     test_transaction_parser.add_argument('account_address', type=valid_address("Account"), help='Mina address corresponding to BIP44 account')
     test_transaction_parser.add_argument('--interactive', default=False, action="store_true", help='Interactive mode')
     test_transaction_parser.add_argument('--network', help='Network override')
+    sign_message = subparsers.add_parser('sign-message')
+    sign_message.add_argument('account_number', type=valid_account, help='BIP44 account generate test transaction with. e.g. 42.')
+    sign_message.add_argument('message', help='Message to sign')
+    sign_message.add_argument('--network', help='Network override')
 
     args = parser.parse_args()
     VERBOSE = args.verbose
@@ -784,6 +788,33 @@ def ledger_sign_tx(tx_type, sender_account, sender_address, receiver, amount, fe
     apdu = bytearray.fromhex(apduMessage)
     return DONGLE.exchange(apdu).hex()
 
+def ledger_sign_message(account, network_id, message):
+    # Create APDU message.
+    # CLA 0xe0 CLA
+    # INS 0x05 INS_SIGN_MESSAGE
+    # P1  0x00 UNUSED
+    # P2  0x00 UNUSED
+    account = '{:08x}'.format(account)
+    network_id = '{:02x}'.format(network_id)
+    message = message.encode().hex()
+
+    total_len = len(account) \
+                + len(network_id) \
+                + len(message) 
+
+    apduMessage = 'e0050000' + '{:02x}'.format(int(total_len/2)) \
+                  + account \
+                  + network_id \
+                  + message
+
+    apdu = bytearray.fromhex(apduMessage)
+
+    if VERBOSE:
+        print("\n\napduMessage hex ({}) = {}\n".format(int(total_len/2), apduMessage))
+
+    return DONGLE.exchange(apdu).hex()
+
+
 def print_transaction(operation, account, balance, locked_balance, sender, receiver, amount, fee, nonce, valid_until, memo):
     if network_id_from_string(NETWORK) == TESTNET_ID:
         print("    Network:     testnet")
@@ -867,7 +898,7 @@ def check_tx(tx_type, tx, sender, receiver, amount, fee, valid_until, nonce, mem
                tx["new_delegate"] == receiver and \
                common_tx_check(tx, fee, valid_until, nonce, memo)
 
-__all__ = [TESTNET_ID, MAINNET_ID, TX_TYPE_PAYMENT, TX_TYPE_DELEGATION, ledger_init, ledger_get_address, ledger_sign_tx]
+__all__ = [TESTNET_ID, MAINNET_ID, TX_TYPE_PAYMENT, TX_TYPE_DELEGATION, ledger_init, ledger_get_address, ledger_sign_tx, ledger_sign_message]
 
 if __name__ == "__main__":
     try:
@@ -887,6 +918,26 @@ if __name__ == "__main__":
 
             if args.cstruct and all(c in string.hexdigits for c in address):
                 print_cstruct(address)
+
+        elif args.operation == "sign-message":
+            ledger_init()
+
+            print("Sign message {} for account {} (path 44'/12586'/\033[4m\033[1m{}\033[0m'/0/0)".format(args.message, args.account_number, args.account_number))
+
+            answer = str(input("Continue? (y/N) ")).lower().strip()
+            if answer != 'y':
+                sys.exit(211)
+
+            if args.network is not None:
+                # mina url override
+                print("Using network override: {}".format(args.network))
+                NETWORK = args.network
+
+            print("Please wait... ", end="", flush=True)
+            result = ledger_sign_message(int(args.account_number), network_id_from_string(NETWORK), args.message)
+            print("done")
+            print('Field: {}'.format(int(result[0:64], 16)))
+            print('Scalar: {}'.format(int(result[64:], 16)))
 
         elif args.operation == "get-balance":
             if args.mina_url is not None:
