@@ -69,7 +69,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.3.1')
+      expect(resp.version).toEqual('1.4.0')
     } finally {
       await sim.close()
     }
