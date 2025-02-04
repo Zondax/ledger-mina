@@ -96,6 +96,10 @@ UX_FLOW(ux_sign_msg_flow_testnet,
 
 void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
 {
+    if (dataBuffer == NULL) {
+        THROW(INVALID_PARAMETER);
+    }
+
     _msgData.dataBufLength = dataLength;
     memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
 

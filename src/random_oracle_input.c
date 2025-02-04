@@ -82,11 +82,15 @@ void roinput_add_bytes(ROInput *input, const uint8_t *bytes, size_t len)
     input->bits_len += 8 * len;
 }
 
-void roinput_add_bytes_le(ROInput *input, const uint8_t *bytes, size_t len)
+int roinput_add_bytes_le(ROInput *input, const uint8_t *bytes, size_t len)
 {
+    if (input == NULL || bytes == NULL) {
+        return -1;
+    }
+
     size_t remaining = (int)input->bits_capacity * 8 - (int)input->bits_len;
     if (remaining < 8 * len) {
-        return;
+        return -1;
     }
     // LSB bits
     size_t k = input->bits_len;
@@ -98,6 +102,7 @@ void roinput_add_bytes_le(ROInput *input, const uint8_t *bytes, size_t len)
         }
     }
     input->bits_len += 8 * len;
+    return 0;
 }
 
 void roinput_add_uint32(ROInput *input, const uint32_t x)
