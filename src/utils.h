@@ -7,6 +7,8 @@
 #include "crypto.h"
 #include "random_oracle_input.h"
 
+#define APDU_CODE_OK 0x9000
+
 #define ARRAY_LEN(array) sizeof(array)/sizeof(array[0])
 
 uint32_t read_uint32_be(const uint8_t *buffer);
