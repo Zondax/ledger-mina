@@ -43,13 +43,20 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
         }
     }
 
-    generate_keypair(&kp, account);
-
-    roinput_add_bytes_le(&roinput, dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
-
-    if (!sign(&sig, &kp, &roinput, network)) {
+    if (roinput_add_bytes_le(&roinput, dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH)) < 0) {
         THROW(INVALID_PARAMETER);
     }
+
+    generate_keypair(&kp, account);
+
+    if (!sign(&sig, &kp, &roinput, network)) {
+        // Clear secret from stack
+        memset(&kp, 0, sizeof(kp));
+        THROW(INVALID_PARAMETER);
+    }
+
+    // Clear secret from stack
+    memset(&kp, 0, sizeof(kp));
 
     memmove(G_io_apdu_buffer, &sig, sizeof(sig));
 

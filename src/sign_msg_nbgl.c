@@ -62,6 +62,10 @@ static void prepare_msg_context(void) {
 
 void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
 {
+    if (dataBuffer == NULL) {
+        THROW(INVALID_PARAMETER);
+    }
+
     _msgData.dataBufLength = dataLength;
     memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
 

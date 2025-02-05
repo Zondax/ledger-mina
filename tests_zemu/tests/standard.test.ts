@@ -69,7 +69,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.4.0')
+      expect(resp.version).toEqual('1.4.1')
     } finally {
       await sim.close()
     }
@@ -91,8 +91,26 @@ describe('Standard', function () {
     }
   })
 
+  describe.each(ADDRESS_DATA)('get address', function (data) {
+    test.concurrent.each(models)(`${data.name}`, async function (m) {
+      const sim = new Zemu(m.path)
+      try {
+        const options = setTextOptionsStandardTests(m)
+        await sim.start({ ...options, model: m.name })
+        const app = new MinaApp(sim.getTransport())
+  
+        const reqGetAddress = app.getAddress(data.account, false)
 
-describe.each(ADDRESS_DATA)('get address', function (data) {
+        const resp = await reqGetAddress
+  
+        expect(resp.publicKey).toEqual(data.expectedAddress)
+      } finally {
+          await sim.close()
+        }
+      })
+    })
+
+describe.each(ADDRESS_DATA)('show address', function (data) {
   test.concurrent.each(models)(`${data.name}`, async function (m) {
     const sim = new Zemu(m.path)
     try {
@@ -100,7 +118,7 @@ describe.each(ADDRESS_DATA)('get address', function (data) {
       await sim.start({ ...options, model: m.name })
       const app = new MinaApp(sim.getTransport())
 
-      const reqGetAddress = app.getAddress(data.account)
+      const reqGetAddress = app.getAddress(data.account, true)
 
       // Navigate and approve
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())

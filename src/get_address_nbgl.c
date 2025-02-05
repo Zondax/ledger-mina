@@ -5,9 +5,8 @@
 #include "menu.h"
 #include "nbgl_use_case.h"
 
-static uint32_t _account = 0;
-static char     _bip44_path[27]; // max length when 44'/12586'/4294967295'/0/0
-static char     _address[MINA_ADDRESS_LEN];
+extern char _bip44_path[27];
+extern char _address[MINA_ADDRESS_LEN];
 
 typedef struct {
     nbgl_layoutTagValue_t tagValuePair[3];
@@ -16,14 +15,6 @@ typedef struct {
 } TransactionContext_t;
 
 static TransactionContext_t transactionContext;
-
-static uint8_t set_result_get_address(void)
-{
-    uint8_t tx = 0;
-    memmove(G_io_apdu_buffer + tx, _address, sizeof(_address));
-    tx += sizeof(_address);
-    return tx;
-}
 
 static void confirmation_callback(bool confirm) {
     if (confirm) {
@@ -36,15 +27,8 @@ static void confirmation_callback(bool confirm) {
     }
 }
 
-void ui_get_address(uint8_t *dataBuffer) {
-    _address[0] = '\0';
-    _account = read_uint32_be(dataBuffer);
-
-    strncpy(_bip44_path, "44'/12586'/", sizeof(_bip44_path));              // used 11/27 (not counting null-byte)
-    value_to_string(&_bip44_path[11], sizeof(_bip44_path) - 11, _account); // at most 21/27 used (max strnlen is 10 when _account = 4294967295)
-    strncat(_bip44_path, "'/0/0", 6);                                      // at least 27 - 21 = 6 bytes free (just enough)
-
-    gen_address(_account, _address);
+void show_address_and_response() {
+    compute_address();
 
     transactionContext.tagValuePair[0].item = "Path";
     transactionContext.tagValuePair[0].value = _bip44_path;

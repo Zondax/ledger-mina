@@ -32,6 +32,9 @@ int b58_encode(const unsigned char *in, unsigned char length,
         // Input buffer too big
         return -1;
     }
+    if (length > (sizeof(buffer) / 2)) {
+        return -1;
+    }
     memcpy(tmp, in, length);
     while ((zeroCount < length) && (tmp[zeroCount] == 0)) {
         ++zeroCount;
@@ -170,7 +173,7 @@ uint64_t read_uint64_be(const uint8_t *buffer)
 
 char *amount_to_string(char *buf, const size_t len, uint64_t amount)
 {
-    // COIN = 1.000 000 000;
+    // COIN is 1.000 000 000;
     size_t mantissa_len = 1;
     for (uint64_t value = amount, _len = 9; value && _len > 0; value /= 10, _len--) {
         if (value % 10 != 0) {
