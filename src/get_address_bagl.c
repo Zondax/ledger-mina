@@ -144,8 +144,8 @@ extern char _address[MINA_ADDRESS_LEN];
     );
 #endif
 
-void show_address_and_response(uint32_t account) {
-    compute_address(account);
+void show_address_and_response() {
+    compute_address();
 
     #ifdef HAVE_ON_DEVICE_UNIT_TESTS
         ux_flow_init(0, ux_get_address_unit_test_flow, NULL);

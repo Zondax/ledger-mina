@@ -7,8 +7,8 @@ char     _bip44_path[27]; // max length when 44'/12586'/4294967295'/0/0
 char     _address[MINA_ADDRESS_LEN];
 
 
-static void compute_address_and_response(uint32_t account) {
-    compute_address(account);
+static void compute_address_and_response() {
+    compute_address();
     sendResponse(set_result_get_address(), true);
 }
 
@@ -25,13 +25,13 @@ void handle_get_address(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
         THROW(INVALID_PARAMETER);
     }
 
-    uint32_t account = read_uint32_be(dataBuffer);
+    _account = read_uint32_be(dataBuffer);
     uint8_t showAddress = p1 == 0;
     if (showAddress) {
-        show_address_and_response(account);
+        show_address_and_response();
         *flags |= IO_ASYNCH_REPLY;
     } else {
-        compute_address_and_response(account);
+        compute_address_and_response();
     }
 }
 
@@ -64,9 +64,8 @@ uint8_t set_result_get_address(void)
     return tx;
 }
 
-void compute_address(uint32_t account) {
+void compute_address() {
     _address[0] = '\0';
-    _account = account;
 
     strncpy(_bip44_path, "44'/12586'/", sizeof(_bip44_path));              // used 11/27 (not counting null-byte)
     value_to_string(&_bip44_path[11], sizeof(_bip44_path) - 11, _account); // at most 21/27 used (max strnlen is 10 when _account = 4294967295)

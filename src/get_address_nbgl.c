@@ -27,8 +27,8 @@ static void confirmation_callback(bool confirm) {
     }
 }
 
-void show_address_and_response(uint32_t account) {
-    compute_address(account);
+void show_address_and_response() {
+    compute_address();
 
     transactionContext.tagValuePair[0].item = "Path";
     transactionContext.tagValuePair[0].value = _bip44_path;
