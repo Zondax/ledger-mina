@@ -2,7 +2,7 @@
 
 #include "globals.h"
 
-uint8_t set_result_get_address(void);
+uint8_t set_result_get_address();
 
 void compute_address();
 

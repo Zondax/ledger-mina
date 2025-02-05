@@ -56,7 +56,7 @@ void gen_address(uint32_t account, char* address)
     }
 }
 
-uint8_t set_result_get_address(void)
+uint8_t set_result_get_address()
 {
     uint8_t tx = 0;
     memmove(G_io_apdu_buffer + tx, _address, sizeof(_address));
