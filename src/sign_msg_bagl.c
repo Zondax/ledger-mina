@@ -53,7 +53,7 @@ UX_STEP_NOCB(
     bn_paging,
     {
         "Message",
-        _msgData.msgDataBuf + MSG_OFFSET,
+        _msgData.msgDataBuf
     }
 );
 
@@ -103,7 +103,7 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
     _msgData.dataBufLength = dataLength;
     memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
 
-    if (dataBuffer[NETWORK_OFFSET] == MAINNET_ID) {
+    if (dataBuffer[strlen(PREFIX) + NETWORK_OFFSET] == MAINNET_ID) {
         ux_flow_init(0, GET_FLOW_PTR(ux_sign_msg_flow), NULL);
     } else {
         ux_flow_init(0, GET_FLOW_PTR(ux_sign_msg_flow_testnet), NULL);

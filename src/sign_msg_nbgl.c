@@ -53,7 +53,7 @@ static void prepare_msg_context(void) {
 
 
     messageContext.tagValuePair[nbPairs].item = "Message";
-    messageContext.tagValuePair[nbPairs].value = _msgData.msgDataBuf + MSG_OFFSET;
+    messageContext.tagValuePair[nbPairs].value = _msgData.msgDataBuf;
     nbPairs++;
 
     messageContext.tagValueList.pairs = messageContext.tagValuePair;
@@ -69,7 +69,7 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
     _msgData.dataBufLength = dataLength;
     memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
 
-    _netId = dataBuffer[NETWORK_OFFSET];
+    _netId = dataBuffer[strlen(PREFIX) + NETWORK_OFFSET];
 
     prepare_msg_context();
     nbgl_useCaseReview(TYPE_TRANSACTION,
