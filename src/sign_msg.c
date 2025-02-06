@@ -10,7 +10,6 @@
 
 #define IS_PRINTABLE(c) (c >= 0x20 && c <= 0x7e)
 
-uint8_t msg_buffer[255];
 uint32_t  account;
 uint8_t network;
 
@@ -19,20 +18,29 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
     UNUSED(p1);
     UNUSED(p2);
 
-    memset(msg_buffer, 0, sizeof(msg_buffer));
+    uint8_t msg_buffer[255] = {0};
+
     const char prefix[] = PREFIX;
 
     if (dataLength + strlen(prefix) > sizeof(msg_buffer)) {
         THROW(INVALID_PARAMETER);
     }
 
+    if (dataLength <= ACCOUNT_LENGTH + NETWORK_LENGTH) {
+        THROW(INVALID_PARAMETER);
+    }
+
     account = read_uint32_be(dataBuffer);
     network = dataBuffer[NETWORK_OFFSET];
+
+    if (network != TESTNET_ID && network != MAINNET_ID) {
+        THROW(INVALID_PARAMETER);
+    }
 
     memcpy(msg_buffer, prefix, strlen(prefix));
     memcpy(msg_buffer + strlen(prefix), dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
 
-    ui_sign_msg(msg_buffer, strlen(prefix) + dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
+    ui_sign_msg(msg_buffer, strlen(prefix) + dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH), network);
     *flags |= IO_ASYNCH_REPLY;
 }
 
@@ -45,6 +53,10 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
     ROInput   roinput = roinput_create(input_fields, bits);
 
     if ((dataLength < ACCOUNT_LENGTH + NETWORK_LENGTH) || (dataLength > 5 + TX_BITSTRINGS_BYTES)) {
+        THROW(INVALID_PARAMETER);
+    }
+
+    if (dataBuffer == NULL) {
         THROW(INVALID_PARAMETER);
     }
 
