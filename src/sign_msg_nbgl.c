@@ -53,14 +53,14 @@ static void prepare_msg_context(void) {
 
 
     messageContext.tagValuePair[nbPairs].item = "Message";
-    messageContext.tagValuePair[nbPairs].value = _msgData.msgDataBuf + MSG_OFFSET;
+    messageContext.tagValuePair[nbPairs].value = _msgData.msgDataBuf;
     nbPairs++;
 
     messageContext.tagValueList.pairs = messageContext.tagValuePair;
     messageContext.tagValueList.nbPairs = nbPairs;
 }
 
-void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
+void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id)
 {
     if (dataBuffer == NULL) {
         THROW(INVALID_PARAMETER);
@@ -69,7 +69,7 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength)
     _msgData.dataBufLength = dataLength;
     memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
 
-    _netId = dataBuffer[NETWORK_OFFSET];
+    _netId = net_id;
 
     prepare_msg_context();
     nbgl_useCaseReview(TYPE_TRANSACTION,

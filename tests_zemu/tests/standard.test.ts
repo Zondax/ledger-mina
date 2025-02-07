@@ -38,14 +38,8 @@ describe('Standard', function () {
       const options = setTextOptionsStandardTests(m)
       await sim.start({ ...options, model: m.name })
       let nav
-      if (m.name === 'flex') {
-        nav = new TouchNavigation(m.name, [
-          ButtonKind.InfoButton,
-          ButtonKind.NavRightButton,
-          ButtonKind.SettingsQuitButton,
-        ]);
-      } else if (m.name === 'stax') {
-        // Stax main menu fits in a single screen
+      if (m.name === 'stax' || m.name === 'flex') {
+        // main menu fits in a single screen
         nav = new TouchNavigation(m.name, [
           ButtonKind.InfoButton,
           ButtonKind.SettingsQuitButton,
@@ -69,7 +63,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.4.1')
+      expect(resp.version).toEqual('1.4.2')
     } finally {
       await sim.close()
     }
