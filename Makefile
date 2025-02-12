@@ -26,7 +26,7 @@ APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x200 $(COMMON
 GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
-APPVERSION_N=3
+APPVERSION_N=4
 APPVERSION_P=2
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"

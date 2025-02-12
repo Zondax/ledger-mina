@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "get_address.h"
 #include "sign_tx.h"
+#include "sign_msg.h"
 #include "test_crypto.h"
 #include "menu.h"
 
@@ -28,6 +29,7 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 #define INS_GET_ADDR    0x02
 #define INS_SIGN_TX     0x03
 #define INS_TEST_CRYPTO 0x04
+#define INS_SIGN_MSG    0x05
 
 #define APDU_HEADER_LEN 5U
 #define OFFSET_CLA 0
@@ -60,7 +62,7 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
                     G_io_apdu_buffer[1] = LEDGER_MINOR_VERSION;
                     G_io_apdu_buffer[2] = LEDGER_PATCH_VERSION;
                     *tx = 3;
-                    THROW(0x9000);
+                    THROW(APDU_CODE_OK);
                     break;
 
                 case INS_GET_ADDR:
@@ -72,6 +74,12 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
 
                 case INS_SIGN_TX:
                     handle_sign_tx(G_io_apdu_buffer[OFFSET_P1],
+                                   G_io_apdu_buffer[OFFSET_P2],
+                                   G_io_apdu_buffer + OFFSET_CDATA,
+                                   dataLength, flags);
+                    break;
+                case INS_SIGN_MSG:
+                    handle_sign_msg(G_io_apdu_buffer[OFFSET_P1],
                                    G_io_apdu_buffer[OFFSET_P2],
                                    G_io_apdu_buffer + OFFSET_CDATA,
                                    dataLength, flags);
@@ -99,7 +107,7 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
             case 0x6000:
                 sw = e;
                 break;
-            case 0x9000:
+            case APDU_CODE_OK:
                 // All is well
                 sw = e;
                 break;
@@ -165,7 +173,7 @@ void app_main(void) {
                     case 0x6000:
                         sw = e;
                         break;
-                    case 0x9000:
+                    case APDU_CODE_OK:
                         // All is well
                         sw = e;
                         break;
@@ -174,7 +182,7 @@ void app_main(void) {
                         sw = 0x6800 | (e & 0x7FF);
                         break;
                 }
-                if (e != 0x9000) {
+                if (e != APDU_CODE_OK) {
                     flags &= ~IO_ASYNCH_REPLY;
                 }
                 // Unexpected exception => report
