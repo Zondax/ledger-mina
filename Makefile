@@ -27,7 +27,7 @@ GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/d
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
 APPVERSION_N=4
-APPVERSION_P=2
+APPVERSION_P=3
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
