@@ -287,6 +287,17 @@ export const MSG_DATA = [
       account: 0,
       networkId: 1,
     }
-  }
+  },
 ]
 
+// commitment obtained from feeGasPayer from https://github.com/o1-labs/o1js/blob/main/src/mina-signer/tests/zkapp.unit-test.ts
+export const FIELD_DATA = [
+  {
+    publicKey: "B62qnzbXmRNo9q32n4SNu2mpB8e7FYYLH8NmaX6oFCBYjjQ8SbD7uzV",
+    privateKey: 'EKDt66ubGg5SDiwcQABWfFZaruq6idcyrLLfyZQjoH4CN3PHEiNj',
+    name: "test_sign_field_1",
+    networkId: 1,
+    account: 0, 
+    commitment:  "123456789123456789"
+  }
+]

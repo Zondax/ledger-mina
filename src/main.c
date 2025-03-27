@@ -19,6 +19,7 @@
 #include "get_address.h"
 #include "sign_tx.h"
 #include "sign_msg.h"
+#include "sign_zk_field.h"
 #include "test_crypto.h"
 #include "menu.h"
 
@@ -30,7 +31,7 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 #define INS_SIGN_TX     0x03
 #define INS_TEST_CRYPTO 0x04
 #define INS_SIGN_MSG    0x05
-
+#define INS_SIGN_ZKAPP_FIELD  0x06
 #define APDU_HEADER_LEN 5U
 #define OFFSET_CLA 0
 #define OFFSET_INS 1
@@ -80,6 +81,13 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
                     break;
                 case INS_SIGN_MSG:
                     handle_sign_msg(G_io_apdu_buffer[OFFSET_P1],
+                                   G_io_apdu_buffer[OFFSET_P2],
+                                   G_io_apdu_buffer + OFFSET_CDATA,
+                                   dataLength, flags);
+                    break;
+
+                case INS_SIGN_ZKAPP_FIELD:
+                    handle_sign_zkapp_field(G_io_apdu_buffer[OFFSET_P1],
                                    G_io_apdu_buffer[OFFSET_P2],
                                    G_io_apdu_buffer + OFFSET_CDATA,
                                    dataLength, flags);
