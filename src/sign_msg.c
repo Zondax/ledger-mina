@@ -87,6 +87,8 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
     }
 
     memmove(G_io_apdu_buffer, &sig, sizeof(sig));
+    G_io_apdu_buffer[sizeof(sig)] = dataLength;
+    memmove(G_io_apdu_buffer + sizeof(sig) + 1, dataBuffer, dataLength);
 
-    sendResponse(sizeof(sig), true);
+    sendResponse(sizeof(sig) + 1 + dataLength, true);
 }
