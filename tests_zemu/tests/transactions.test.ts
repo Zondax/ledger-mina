@@ -1,38 +1,46 @@
-import Zemu, { DEFAULT_START_OPTIONS, IDeviceModel, isTouchDevice } from "@zondax/zemu"
-import { defaultOptions, models } from "./common"
-import { MinaApp } from "@zondax/ledger-mina-js"
-import { TX_DATA } from "./transactions"
+import Zemu, {
+  DEFAULT_START_OPTIONS,
+  IDeviceModel,
+  isTouchDevice,
+} from "@zondax/zemu";
+import { defaultOptions, models } from "./common";
+import { MinaApp } from "@zondax/ledger-mina-js";
+import { TX_DATA } from "./transactions";
 
-jest.setTimeout(60000)
+jest.setTimeout(60000);
 
-describe.each(TX_DATA)('Tx transfer', function (data) {
+describe.each(TX_DATA)("Tx transfer", function (data) {
   test.concurrent.each(models)(`${data.name}`, async function (m) {
-    const sim = new Zemu(m.path)
+    const sim = new Zemu(m.path);
     try {
-      setTextOptions(m)
-      await sim.start({ ...defaultOptions, model: m.name })
-      const app = new MinaApp(sim.getTransport())
+      setTextOptions(m);
+      await sim.start({ ...defaultOptions, model: m.name });
+      const app = new MinaApp(sim.getTransport());
 
       // do not wait here.. we need to navigate
-      const signatureRequest = app.signTransaction(data.txParams)
+      const signatureRequest = app.signTransaction(data.txParams);
 
       // Wait until we are not in the main menu
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
-      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-${data.name}`, true)
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+      await sim.compareSnapshotsAndApprove(
+        ".",
+        `${m.prefix.toLowerCase()}-${data.name}`,
+        true
+      );
 
-      const signatureResponse = await signatureRequest
+      const signatureResponse = await signatureRequest;
 
-      expect(signatureResponse.signature).toEqual(data.signature)
+      expect(signatureResponse.signature).toEqual(data.signature);
     } finally {
-      await sim.close()
+      await sim.close();
     }
-  })
-})
+  });
+});
 
 function setTextOptions(m: IDeviceModel) {
   if (isTouchDevice(m.name)) {
-    defaultOptions.startText = 'This app enables'
+    defaultOptions.startText = "This app enables";
   } else {
-    defaultOptions.startText = DEFAULT_START_OPTIONS.startText
+    defaultOptions.startText = DEFAULT_START_OPTIONS.startText;
   }
 }

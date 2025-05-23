@@ -14,135 +14,160 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import Zemu, { ButtonKind, DEFAULT_START_OPTIONS, IDeviceModel, isTouchDevice, TouchNavigation, zondaxMainmenuNavigation } from '@zondax/zemu'
-import { MinaApp } from '@zondax/ledger-mina-js'
-import { PATH, defaultOptions, models } from './common'
-import { ADDRESS_DATA } from './addresses'
+import Zemu, {
+  ButtonKind,
+  DEFAULT_START_OPTIONS,
+  IDeviceModel,
+  isTouchDevice,
+  TouchNavigation,
+  zondaxMainmenuNavigation,
+} from "@zondax/zemu";
+import { MinaApp } from "@zondax/ledger-mina-js";
+import { FlareApp } from "@zondax/ledger-flare";
+import { PATH, defaultOptions, models } from "./common";
+import { ADDRESS_DATA } from "./addresses";
 
-jest.setTimeout(60000)
+jest.setTimeout(60000);
 
-describe('Standard', function () {
-  test.concurrent.each(models)('can start and stop container', async function (m) {
-    const sim = new Zemu(m.path)
-    try {
-      const options = setTextOptionsStandardTests(m)
-      await sim.start({ ...options, model: m.name })
-    } finally {
-      await sim.close()
+describe("Standard", function () {
+  test.concurrent.each(models)(
+    "can start and stop container",
+    async function (m) {
+      const sim = new Zemu(m.path);
+      try {
+        const options = setTextOptionsStandardTests(m);
+        await sim.start({ ...options, model: m.name });
+      } finally {
+        await sim.close();
+      }
     }
-  })
+  );
 
-  test.concurrent.each(models)('main menu', async function (m) {
-    const sim = new Zemu(m.path)
+  test.concurrent.each(models)("main menu", async function (m) {
+    const sim = new Zemu(m.path);
     try {
-      const options = setTextOptionsStandardTests(m)
-      await sim.start({ ...options, model: m.name })
-      let nav
-      if (m.name === 'stax' || m.name === 'flex') {
+      const options = setTextOptionsStandardTests(m);
+      await sim.start({ ...options, model: m.name });
+      let nav;
+      if (m.name === "stax" || m.name === "flex") {
         // main menu fits in a single screen
         nav = new TouchNavigation(m.name, [
           ButtonKind.InfoButton,
           ButtonKind.SettingsQuitButton,
         ]);
       } else {
-        nav = zondaxMainmenuNavigation(m.name, [1, 1, 1, 1, 1, -5])
+        nav = zondaxMainmenuNavigation(m.name, [1, 1, 1, 1, 1, -5]);
       }
-      await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, nav.schedule)
+      await sim.navigateAndCompareSnapshots(
+        ".",
+        `${m.prefix.toLowerCase()}-mainmenu`,
+        nav.schedule
+      );
     } finally {
-      await sim.close()
+      await sim.close();
     }
-  })
+  });
 
-  test.concurrent.each(models)('get app version', async function (m) {
-    const sim = new Zemu(m.path)
+  test.concurrent.each(models)("get app version", async function (m) {
+    const sim = new Zemu(m.path);
     try {
-      const options = setTextOptionsStandardTests(m)
-      await sim.start({ ...options, model: m.name })
-      const app = new MinaApp(sim.getTransport())
+      const options = setTextOptionsStandardTests(m);
+      await sim.start({ ...options, model: m.name });
+      const app = new MinaApp(sim.getTransport());
 
-      const resp = await app.getAppVersion()
-      console.log(resp)
+      const resp = await app.getAppVersion();
+      console.log(resp);
 
-      expect(resp.version).toEqual('1.4.3')
+      expect(resp.version).toEqual("1.4.3");
     } finally {
-      await sim.close()
+      await sim.close();
     }
-  })
+  });
 
-  test.concurrent.each(models)('get app name', async function (m) {
-    const sim = new Zemu(m.path)
+  test.concurrent.each(models)("get app name", async function (m) {
+    const sim = new Zemu(m.path);
     try {
-      const options = setTextOptionsStandardTests(m)
-      await sim.start({ ...options, model: m.name })
-      const app = new MinaApp(sim.getTransport())
+      const options = setTextOptionsStandardTests(m);
+      await sim.start({ ...options, model: m.name });
+      const app = new MinaApp(sim.getTransport());
 
-      const resp = await app.getAppName()
-      console.log(resp)
+      const resp = await app.getAppName();
+      console.log(resp);
 
-      expect(resp.name).toEqual('Mina')
+      expect(resp.name).toEqual("Mina");
     } finally {
-      await sim.close()
+      await sim.close();
     }
-  })
+  });
 
-  describe.each(ADDRESS_DATA)('get address', function (data) {
+  describe.each(ADDRESS_DATA)("get address", function (data) {
     test.concurrent.each(models)(`${data.name}`, async function (m) {
-      const sim = new Zemu(m.path)
+      const sim = new Zemu(m.path);
       try {
-        const options = setTextOptionsStandardTests(m)
-        await sim.start({ ...options, model: m.name })
-        const app = new MinaApp(sim.getTransport())
-  
-        const reqGetAddress = app.getAddress(data.account, false)
+        const options = setTextOptionsStandardTests(m);
+        await sim.start({ ...options, model: m.name });
+        const app = new MinaApp(sim.getTransport());
 
-        const resp = await reqGetAddress
-  
-        expect(resp.publicKey).toEqual(data.expectedAddress)
+        const reqGetAddress = app.getAddress(data.account, false);
+
+        const resp = await reqGetAddress;
+
+        expect(resp.publicKey).toEqual(data.expectedAddress);
       } finally {
-          await sim.close()
+        await sim.close();
+      }
+    });
+  });
+
+  describe.each(ADDRESS_DATA)("show address", function (data) {
+    test.concurrent.each(models)(`${data.name}`, async function (m) {
+      const sim = new Zemu(m.path);
+      try {
+        const options = setTextOptionsStandardTests(m);
+        await sim.start({ ...options, model: m.name });
+        const app = new MinaApp(sim.getTransport());
+
+        const reqGetAddress = app.getAddress(data.account, true);
+
+        // Navigate and approve
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+        await sim.compareSnapshotsAndApprove(
+          ".",
+          `${m.prefix.toLowerCase()}-${data.name}`,
+          true
+        );
+
+        if (!isTouchDevice(m.name)) {
+          await sim.navigateAndCompareUntilText(
+            ".",
+            `${m.prefix.toLowerCase()}-${data.name}`,
+            "Approve",
+            true,
+            3
+          );
         }
-      })
-    })
 
-describe.each(ADDRESS_DATA)('show address', function (data) {
-  test.concurrent.each(models)(`${data.name}`, async function (m) {
-    const sim = new Zemu(m.path)
-    try {
-      const options = setTextOptionsStandardTests(m)
-      await sim.start({ ...options, model: m.name })
-      const app = new MinaApp(sim.getTransport())
+        const resp = await reqGetAddress;
 
-      const reqGetAddress = app.getAddress(data.account, true)
-
-      // Navigate and approve
-      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
-
-      await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-${data.name}`, true)
-
-      if (!isTouchDevice(m.name)) {
-        await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-${data.name}`, 'Approve', true, 3)
+        expect(resp.publicKey).toEqual(data.expectedAddress);
+      } finally {
+        await sim.close();
       }
-
-      const resp = await reqGetAddress
-
-      expect(resp.publicKey).toEqual(data.expectedAddress)
-    } finally {
-        await sim.close()
-      }
-    })
-  })
-})
+    });
+  });
+});
 
 function setTextOptionsStandardTests(m: IDeviceModel) {
-  const options = { ...defaultOptions }
+  const options = { ...defaultOptions };
   if (isTouchDevice(m.name)) {
-    options.approveAction = 15 /* ButtonKind.ConfirmYesButton */
-    options.approveKeyword = 'Confirm'
-    options.startText = 'This app enables'
+    options.approveAction = 15; /* ButtonKind.ConfirmYesButton */
+    options.approveKeyword = "Confirm";
+    options.startText = "This app enables";
   } else {
-    options.approveAction = DEFAULT_START_OPTIONS.approveAction
-    options.approveKeyword = 'Generate|Approve'
-    options.startText = DEFAULT_START_OPTIONS.startText
+    options.approveAction = DEFAULT_START_OPTIONS.approveAction;
+    options.approveKeyword = "Generate|Approve";
+    options.startText = DEFAULT_START_OPTIONS.startText;
   }
-  return options
+  return options;
 }
