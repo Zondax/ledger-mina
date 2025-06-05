@@ -49,6 +49,7 @@ void sign_transaction(tx_t* tx, ui_t* ui)
             }
         }
         CATCH_OTHER(e) {
+            UNUSED(e);
             error = true;
         }
         FINALLY {

@@ -27,7 +27,7 @@ describe.each(MSG_DATA)('Msg transfer', function (data) {
       const signer = new Client({ network: data.msg.networkId === 0 ? 'testnet' : 'mainnet' });
 
       // Signature from SDK
-      const sdkSignature = await signer.signMessage("Message : " + data.msg.msg, data.privateKey)
+      const sdkSignature = await signer.signMessage(data.msg.msg, data.privateKey)
 
       let field_hex = BigInt(sdkSignature.signature.field).toString(16);
       let scalar_hex = BigInt(sdkSignature.signature.scalar).toString(16);

@@ -20,9 +20,7 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
 
     uint8_t msg_buffer[255] = {0};
 
-    const char prefix[] = PREFIX;
-
-    if (dataLength + strlen(prefix) > sizeof(msg_buffer)) {
+    if (dataLength > sizeof(msg_buffer)) {
         THROW(INVALID_PARAMETER);
     }
 
@@ -37,10 +35,9 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
         THROW(INVALID_PARAMETER);
     }
 
-    memcpy(msg_buffer, prefix, strlen(prefix));
-    memcpy(msg_buffer + strlen(prefix), dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
+    memcpy(msg_buffer, dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
 
-    ui_sign_msg(msg_buffer, strlen(prefix) + dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH), network);
+    ui_sign_msg(msg_buffer, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH), network);
     *flags |= IO_ASYNCH_REPLY;
 }
 
