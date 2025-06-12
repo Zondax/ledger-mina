@@ -19,10 +19,12 @@ ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
 
+ifndef COIN
+COIN=mina
+endif
+
 VARIANT_PARAM=COIN
 VARIANT_VALUES=$(COIN)
-
-APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x200 $(COMMON_LOAD_PARAMS)
 
 # Add and push a new git tag to update the app version
 GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
@@ -33,16 +35,32 @@ APPVERSION_P=4
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
-# App-specific icon selection
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-	ICONNAME=icons/nanos_app_mina.gif
-else ifeq ($(TARGET_NAME),TARGET_STAX)
-	ICONNAME=icons/stax_app_mina.gif
-else ifeq ($(TARGET_NAME),TARGET_FLEX)
-	ICONNAME=icons/flex_app_mina.gif
-else
-	ICONNAME=icons/nanox_app_mina.gif
-endif
+#APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x200 $(COMMON_LOAD_PARAMS)
+# Application allowed derivation curves.
+# Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
+# If your app needs it, you can specify multiple curves by using:
+# `CURVE_APP_LOAD_PARAMS = <curve1> <curve2>`
+CURVE_APP_LOAD_PARAMS = secp256k1
+
+# Application allowed derivation paths.
+# You should request a specific path for your app.
+# This serve as an isolation mechanism.
+# Most application will have to request a path according to the BIP-0044
+# and SLIP-0044 standards.
+# If your app needs it, you can specify multiple path by using:
+# `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
+
+APPPATH = "44'/12586'"
+$(info PATHS LIST = $(APPPATH))
+PATH_APP_LOAD_PARAMS = $(APPPATH)
+
+# Application icons following guidelines:
+# https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
+ICON_NANOS = icons/nanos_app_mina.gif
+ICON_NANOX = icons/nanox_app_mina.gif
+ICON_NANOSP = icons/nanox_app_mina.gif
+ICON_STAX = icons/stax_app_mina.gif
+ICON_FLEX = icons/flex_app_mina.gif
 
 ################
 # Default rule #
@@ -160,6 +178,8 @@ fi
 read -p "Please unlock your Ledger device and exit any apps (press any key to continue) " unused
 endef
 export RELEASE_DEPS
+
+HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
 
 include $(BOLOS_SDK)/Makefile.standard_app
 
