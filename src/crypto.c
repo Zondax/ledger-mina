@@ -749,6 +749,7 @@ bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t
             io_seproxyhal_io_heartbeat();
         }
         CATCH_OTHER(e) {
+            UNUSED(e);
             error = true;
         }
         FINALLY {

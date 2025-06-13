@@ -22,8 +22,6 @@
 #include "test_crypto.h"
 #include "menu.h"
 
-unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-
 #define CLA             0xe0
 #define INS_GET_CONF    0x01
 #define INS_GET_ADDR    0x02
@@ -58,9 +56,9 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
 
             switch (G_io_apdu_buffer[OFFSET_INS]) {
                 case INS_GET_CONF:
-                    G_io_apdu_buffer[0] = LEDGER_MAJOR_VERSION;
-                    G_io_apdu_buffer[1] = LEDGER_MINOR_VERSION;
-                    G_io_apdu_buffer[2] = LEDGER_PATCH_VERSION;
+                    G_io_apdu_buffer[0] = MAJOR_VERSION;
+                    G_io_apdu_buffer[1] = MINOR_VERSION;
+                    G_io_apdu_buffer[2] = PATCH_VERSION;
                     *tx = 3;
                     THROW(APDU_CODE_OK);
                     break;
