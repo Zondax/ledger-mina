@@ -1,4 +1,4 @@
 base58
 bip32
-ragger[tests,speculos]
+ragger[tests,speculos]==1.32.1
 ledgerblue
