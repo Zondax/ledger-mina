@@ -49,6 +49,19 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
     uint8_t bits[TX_BITSTRINGS_BYTES];
     ROInput   roinput = roinput_create(input_fields, bits);
 
+    // Add PREFIX to the buffer
+    const uint8_t prefix_len = strlen(PREFIX);
+    uint8_t prefixed_buffer[5 + TX_BITSTRINGS_BYTES];
+    
+    if (dataLength + prefix_len > sizeof(prefixed_buffer)) {
+        THROW(INVALID_PARAMETER);
+    }
+    
+    memcpy(prefixed_buffer, PREFIX, prefix_len);
+    memcpy(prefixed_buffer + prefix_len, dataBuffer, dataLength);
+    dataLength += prefix_len;
+    dataBuffer = prefixed_buffer;
+
     if ((dataLength < ACCOUNT_LENGTH + NETWORK_LENGTH) || (dataLength > 5 + TX_BITSTRINGS_BYTES)) {
         THROW(INVALID_PARAMETER);
     }
@@ -85,5 +98,7 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
 
     memmove(G_io_apdu_buffer, &sig, sizeof(sig));
 
-    sendResponse(sizeof(sig), true);
+    G_io_apdu_buffer[sizeof(sig)] = dataLength;
+    memmove(G_io_apdu_buffer + sizeof(sig) + 1, dataBuffer, dataLength);
+    sendResponse(sizeof(sig) + 1 + dataLength, true);
 }
