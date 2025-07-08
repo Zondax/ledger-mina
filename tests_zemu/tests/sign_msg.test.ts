@@ -40,6 +40,7 @@ describe.each(MSG_DATA)('Msg transfer', function (data) {
       expect(signatureResponse.field).toBe(sdkSignature.signature.field)
       expect(signatureResponse.scalar).toBe(sdkSignature.signature.scalar)
       expect(signatureResponse.raw_signature).toBe(signatureSdkHex)
+      expect(signatureResponse.signed_message).toBe("Message : " + data.msg.msg)
     } finally {
       await sim.close()
     }
