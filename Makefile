@@ -18,30 +18,49 @@
 ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
-include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x200 $(COMMON_LOAD_PARAMS)
+ifndef COIN
+COIN=mina
+endif
+
+VARIANT_PARAM=COIN
+VARIANT_VALUES=$(COIN)
 
 # Add and push a new git tag to update the app version
 GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
 APPVERSION_N=4
-APPVERSION_P=2
+APPVERSION_P=5
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
-DEFINES += $(DEFINES_LIB) $(USER_DEFINES)
+#APP_LOAD_PARAMS= --path "44'/12586'" --curve secp256k1 --appFlags 0x200 $(COMMON_LOAD_PARAMS)
+# Application allowed derivation curves.
+# Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
+# If your app needs it, you can specify multiple curves by using:
+# `CURVE_APP_LOAD_PARAMS = <curve1> <curve2>`
+CURVE_APP_LOAD_PARAMS = secp256k1
 
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-	ICONNAME=icons/nanos_app_mina.gif
-else ifeq ($(TARGET_NAME),TARGET_STAX)
-	ICONNAME=icons/stax_app_mina.gif
-else ifeq ($(TARGET_NAME),TARGET_FLEX)
-	ICONNAME=icons/flex_app_mina.gif
-else
-	ICONNAME=icons/nanox_app_mina.gif
-endif
+# Application allowed derivation paths.
+# You should request a specific path for your app.
+# This serve as an isolation mechanism.
+# Most application will have to request a path according to the BIP-0044
+# and SLIP-0044 standards.
+# If your app needs it, you can specify multiple path by using:
+# `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
+
+APPPATH = "44'/12586'"
+$(info PATHS LIST = $(APPPATH))
+PATH_APP_LOAD_PARAMS = $(APPPATH)
+
+# Application icons following guidelines:
+# https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
+ICON_NANOS = icons/nanos_app_mina.gif
+ICON_NANOX = icons/nanox_app_mina.gif
+ICON_NANOSP = icons/nanox_app_mina.gif
+ICON_STAX = icons/stax_app_mina.gif
+ICON_FLEX = icons/flex_app_mina.gif
 
 ################
 # Default rule #
@@ -95,67 +114,11 @@ else
 NO_STACK_CANARY=1
 endif
 
-DEFINES   += APPNAME=\"$(APPNAME)\"
+# App-specific defines
 DEFINES   += LEDGER_BUILD
-DEFINES   += OS_IO_SEPROXYHAL
-DEFINES   += HAVE_SPRINTF
-DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=6 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
-DEFINES   += LEDGER_MAJOR_VERSION=$(APPVERSION_M) LEDGER_MINOR_VERSION=$(APPVERSION_N) LEDGER_PATCH_VERSION=$(APPVERSION_P)
-
-# U2F
-DEFINES   += HAVE_U2F HAVE_IO_U2F
-DEFINES   += U2F_PROXY_MAGIC=\"BOIL\"
-DEFINES   += USB_SEGMENT_SIZE=64
-DEFINES   += BLE_SEGMENT_SIZE=32 #max MTU, min 20
-
-WEBUSB_URL     = www.ledgerwallet.com
-DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=$(shell echo -n $(WEBUSB_URL) | wc -c) WEBUSB_URL=$(shell echo -n $(WEBUSB_URL) | sed -e "s/./\\\'\0\\\',/g")
-
 DEFINES   += UNUSED\(x\)=\(void\)x
+DEFINES   += APPNAME=\"$(APPNAME)\"
 DEFINES   += APPVERSION=\"$(APPVERSION)\"
-
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX TARGET_FLEX))
-DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
-DEFINES       += HAVE_BLE_APDU # basic ledger apdu transport over BLE
-endif
-
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-else
-    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-endif
-
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
-    DEFINES += NBGL_QRCODE
-    SDK_SOURCE_PATH += qrcode
-else
-    DEFINES += HAVE_BAGL HAVE_UX_FLOW
-    ifneq ($(TARGET_NAME),TARGET_NANOS)
-        DEFINES += BUILD_NANOX 
-        DEFINES += HAVE_GLO096
-        DEFINES += HAVE_BAGL BAGL_WIDTH=128 BAGL_HEIGHT=64
-        DEFINES += HAVE_BAGL_ELLIPSIS # long label truncation feature
-        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
-        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
-        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
-    endif
-endif
-
-# Both nano S and X benefit from the flow.
-DEFINES       += HAVE_UX_FLOW
-
-# Enabling debug PRINTF
-DEBUG = 0
-ifneq ($(DEBUG),0)
-
-        ifeq ($(TARGET_NAME),TARGET_NANOS)
-                DEFINES   += HAVE_PRINTF PRINTF=screen_printf
-        else
-                DEFINES   += HAVE_PRINTF PRINTF=mcu_usb_printf
-        endif
-else
-        DEFINES   += PRINTF\(...\)=
-endif
 
 ifneq ("$(MAKECMDGOALS)", "clean")
 ifneq ("$(MAKECMDGOALS)", "allclean")
@@ -181,46 +144,8 @@ $(error HAVE_ON_DEVICE_UNIT_TESTS should not be used for release builds);
 endif
 endif
 
-##############
-#  Compiler  #
-##############
-ifneq ($(BOLOS_ENV),)
-$(info BOLOS_ENV=$(BOLOS_ENV))
-CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
-GCCPATH := $(BOLOS_ENV)/gcc-arm-none-eabi-10.3-2021.10/bin/
-else
-$(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
-endif
-ifeq ($(CLANGPATH),)
-$(info CLANGPATH is not set: clang will be used from PATH)
-endif
-ifeq ($(GCCPATH),)
-$(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
-endif
-
-CC       := $(CLANGPATH)clang
-
-CFLAGS   += -O3 -Os
-
-AS     := $(GCCPATH)arm-none-eabi-gcc
-
-LD       := $(GCCPATH)arm-none-eabi-gcc
-LDFLAGS  += -O3 -Os
-LDLIBS   += -lm -lgcc -lc
-
-# import rules to compile glyphs(/pone)
-include $(BOLOS_SDK)/Makefile.glyphs
-
 ### variables processed by the common makefile.rules of the SDK to grab source files and include dirs
 APP_SOURCE_PATH  += src
-SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl lib_u2f
-ifneq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
-SDK_SOURCE_PATH += lib_ux
-endif
-
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX TARGET_FLEX))
-SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
-endif
 
 APP_LOAD_PARAMS_EVALUATED=$(shell printf '\\"%s\\" ' $(APP_LOAD_PARAMS))
 APP_DELETE_PARAMS_EVALUATED=$(shell printf '\\"%s\\" ' $(COMMON_DELETE_PARAMS))
@@ -253,6 +178,10 @@ fi
 read -p "Please unlock your Ledger device and exit any apps (press any key to continue) " unused
 endef
 export RELEASE_DEPS
+
+HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
+
+include $(BOLOS_SDK)/Makefile.standard_app
 
 side_release: all
 	@# Must force clean like this because Ledger makefile always runs first
@@ -304,18 +233,3 @@ side_release: all
 	@rm -f install.sh
 	@rm -f uninstall.sh
 	@rm -f mina_ledger_wallet
-
-load: all
-	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
-
-load-offline: all
-	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS) --offline
-
-delete:
-	python3 -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
-
-# import generic rules from the sdk
-include $(BOLOS_SDK)/Makefile.rules
-
-listvariants:
-	@echo VARIANTS COIN mina

@@ -37,7 +37,10 @@ describe.each(MSG_DATA)('Msg transfer', function (data) {
       scalar_hex = scalar_hex.padStart(scalar_hex.length + (scalar_hex.length % 2), '0');
       const signatureSdkHex = field_hex + scalar_hex;
 
-      expect(signatureResponse.signature).toBe(signatureSdkHex)
+      expect(signatureResponse.field).toBe(sdkSignature.signature.field)
+      expect(signatureResponse.scalar).toBe(sdkSignature.signature.scalar)
+      expect(signatureResponse.raw_signature).toBe(signatureSdkHex)
+      expect(signatureResponse.signed_message).toBe("Message : " + data.msg.msg)
     } finally {
       await sim.close()
     }

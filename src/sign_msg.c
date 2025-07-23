@@ -20,9 +20,7 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
 
     uint8_t msg_buffer[255] = {0};
 
-    const char prefix[] = PREFIX;
-
-    if (dataLength + strlen(prefix) > sizeof(msg_buffer)) {
+    if (dataLength > sizeof(msg_buffer)) {
         THROW(INVALID_PARAMETER);
     }
 
@@ -37,10 +35,9 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
         THROW(INVALID_PARAMETER);
     }
 
-    memcpy(msg_buffer, prefix, strlen(prefix));
-    memcpy(msg_buffer + strlen(prefix), dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
+    memcpy(msg_buffer, dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
 
-    ui_sign_msg(msg_buffer, strlen(prefix) + dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH), network);
+    ui_sign_msg(msg_buffer, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH), network);
     *flags |= IO_ASYNCH_REPLY;
 }
 
@@ -51,6 +48,19 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
     Field   input_fields[0];
     uint8_t bits[TX_BITSTRINGS_BYTES];
     ROInput   roinput = roinput_create(input_fields, bits);
+
+    // Add PREFIX to the buffer
+    const uint8_t prefix_len = strlen(PREFIX);
+    uint8_t prefixed_buffer[5 + TX_BITSTRINGS_BYTES];
+    
+    if (dataLength + prefix_len > sizeof(prefixed_buffer)) {
+        THROW(INVALID_PARAMETER);
+    }
+    
+    memcpy(prefixed_buffer, PREFIX, prefix_len);
+    memcpy(prefixed_buffer + prefix_len, dataBuffer, dataLength);
+    dataLength += prefix_len;
+    dataBuffer = prefixed_buffer;
 
     if ((dataLength < ACCOUNT_LENGTH + NETWORK_LENGTH) || (dataLength > 5 + TX_BITSTRINGS_BYTES)) {
         THROW(INVALID_PARAMETER);
@@ -88,5 +98,7 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
 
     memmove(G_io_apdu_buffer, &sig, sizeof(sig));
 
-    sendResponse(sizeof(sig), true);
+    G_io_apdu_buffer[sizeof(sig)] = dataLength;
+    memmove(G_io_apdu_buffer + sizeof(sig) + 1, dataBuffer, dataLength);
+    sendResponse(sizeof(sig) + 1 + dataLength, true);
 }

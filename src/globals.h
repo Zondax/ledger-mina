@@ -7,7 +7,8 @@
 #define P1_FIRST 0x00
 #define P1_MORE 0x80
 
-extern ux_state_t ux;
+// Provided by the SDK
+extern ux_state_t G_ux;
 // display stepped screens
 extern unsigned int ux_step;
 extern unsigned int ux_step_count;

@@ -66,6 +66,7 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id)
         THROW(INVALID_PARAMETER);
     }
 
+    memset(_msgData.msgDataBuf, 0, sizeof(_msgData.msgDataBuf));
     _msgData.dataBufLength = dataLength;
     memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
 
