@@ -1,5 +1,6 @@
 #pragma once
 #include "globals.h"
+#include "crypto.h"
 
 #define ACCOUNT_LENGTH 4
 #define NETWORK_LENGTH 1
@@ -11,8 +12,8 @@
 #define PREFIX "Message : "
 
 void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
-                    uint8_t dataLength, volatile unsigned int *flags);
+                    uint8_t dataLength, volatile unsigned int *flags, poseidon_mode_t mode);
 
-void ui_sign_msg(uint8_t* dataBuffer, uint8_t dataLength, uint8_t net_id);
+void ui_sign_msg(uint8_t* dataBuffer, uint8_t dataLength, uint8_t net_id, poseidon_mode_t mode);
 
 void sign_message(uint8_t *dataBuffer, uint8_t dataLength);

@@ -13,7 +13,8 @@
 #define MAX_ELEM_CNT 5
 
 struct {
-    char msgDataBuf[256];
+    char msgDataBuf[256];      // For display (may be hex string)
+    uint8_t rawDataBuf[256];   // Original bytes for signing
     uint8_t dataBufLength;
 } _msgData;
 static uint8_t _netId;
@@ -26,15 +27,15 @@ typedef struct
 
 static MessageContext_t messageContext;
 
-static void review_choice(bool confirm) 
+static void review_choice(bool confirm)
 {
-    if (confirm) 
+    if (confirm)
     {
         nbgl_useCaseSpinner("Processing");
-        sign_message((uint8_t *) _msgData.msgDataBuf, _msgData.dataBufLength),
+        sign_message(_msgData.rawDataBuf, _msgData.dataBufLength),
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, ui_idle);
     }
-    else 
+    else
     {
         sendResponse(0, false);
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_idle);
@@ -60,15 +61,24 @@ static void prepare_msg_context(void) {
     messageContext.tagValueList.nbPairs = nbPairs;
 }
 
-void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id)
+void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id, poseidon_mode_t mode)
 {
     if (dataBuffer == NULL) {
         THROW(INVALID_PARAMETER);
     }
 
     memset(_msgData.msgDataBuf, 0, sizeof(_msgData.msgDataBuf));
+    memset(_msgData.rawDataBuf, 0, sizeof(_msgData.rawDataBuf));
     _msgData.dataBufLength = dataLength;
-    memcpy(_msgData.msgDataBuf, (char *) dataBuffer, _msgData.dataBufLength);
+
+    // Always store raw bytes for signing
+    memcpy(_msgData.rawDataBuf, dataBuffer, dataLength);
+
+    if (mode == POSEIDON_KIMCHI) {
+        bytes_to_hex_display(_msgData.msgDataBuf, sizeof(_msgData.msgDataBuf), dataBuffer, dataLength);
+    } else {
+        memcpy(_msgData.msgDataBuf, (char *) dataBuffer, dataLength);
+    }
 
     _netId = net_id;
 

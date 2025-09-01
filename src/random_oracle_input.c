@@ -192,9 +192,9 @@ int roinput_to_fields(Field *out, size_t len, const ROInput *input)
     return output_len;
 }
 
-int roinput_derive_message(uint8_t *out, const size_t len, const Keypair *kp, const ROInput *msg, const uint8_t network_id)
+int roinput_derive_message(uint8_t *out, const size_t len, const Keypair *kp, const ROInput *msg, const uint8_t network_id, poseidon_mode_t mode)
 {
-    Field   input_fields[INPUT_FIELD_CNT + 2];
+    Field   input_fields[INPUT_FIELD_CNT + 4];
     uint8_t input_bits[TX_BITSTRINGS_BYTES + SCALAR_BYTES + 1];
     ROInput input = roinput_create(input_fields, input_bits);
 
@@ -218,8 +218,18 @@ int roinput_derive_message(uint8_t *out, const size_t len, const Keypair *kp, co
 
     roinput_add_field(&input, kp->pub.x);
     roinput_add_field(&input, kp->pub.y);
-    roinput_add_scalar(&input, kp->priv); // Secret is now on stack!
-    roinput_add_bytes(&input, &network_id, 1);
+
+    if (mode == POSEIDON_KIMCHI) {
+        roinput_add_field(&input, kp->priv);
+
+        Field network_field = {0};
+        network_field[FIELD_BYTES - 1] = network_id;  // Little-endian: LSB at end after reversal in roinput_add_field
+        roinput_add_field(&input, network_field);
+    } else {
+        // POSEIDON_LEGACY
+        roinput_add_scalar(&input, kp->priv);
+        roinput_add_bytes(&input, &network_id, 1);
+    }
 
     size_t input_size_in_bytes = (input.bits_len + FIELD_BITS * input.fields_len + 7) / 8;
     if (input_size_in_bytes <= len) {
@@ -227,6 +237,7 @@ int roinput_derive_message(uint8_t *out, const size_t len, const Keypair *kp, co
     }
 
     // Clear privkey material
+    explicit_bzero(&input_fields, sizeof(input_fields));
     explicit_bzero(&input_bits, sizeof(input_bits));
 
     return input_size_in_bytes > len ? -1 : input_size_in_bytes;
