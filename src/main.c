@@ -28,6 +28,7 @@
 #define INS_SIGN_TX     0x03
 #define INS_TEST_CRYPTO 0x04
 #define INS_SIGN_MSG    0x05
+#define INS_SIGN_MSG_KIMCHI 0x06
 
 #define APDU_HEADER_LEN 5U
 #define OFFSET_CLA 0
