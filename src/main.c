@@ -81,7 +81,14 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
                     handle_sign_msg(G_io_apdu_buffer[OFFSET_P1],
                                    G_io_apdu_buffer[OFFSET_P2],
                                    G_io_apdu_buffer + OFFSET_CDATA,
-                                   dataLength, flags);
+                                   dataLength, flags, POSEIDON_LEGACY);
+                    break;
+                
+                case INS_SIGN_MSG_KIMCHI:
+                    handle_sign_msg(G_io_apdu_buffer[OFFSET_P1],
+                                   G_io_apdu_buffer[OFFSET_P2],
+                                   G_io_apdu_buffer + OFFSET_CDATA,
+                                   dataLength, flags, POSEIDON_KIMCHI);
                     break;
 
                 #ifdef HAVE_CRYPTO_TESTS
