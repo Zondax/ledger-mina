@@ -31,7 +31,7 @@ GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/d
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
 APPVERSION_N=4
-APPVERSION_P=5
+APPVERSION_P=6
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
@@ -180,6 +180,8 @@ endef
 export RELEASE_DEPS
 
 HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
+
+ENABLE_BLUETOOTH = 1
 
 include $(BOLOS_SDK)/Makefile.standard_app
 
