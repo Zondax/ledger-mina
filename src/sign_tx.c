@@ -5,6 +5,7 @@
 #include "sign_tx.h"
 #include "utils.h"
 #include "crypto.h"
+#include "poseidon.h"
 #include "random_oracle_input.h"
 
 void handle_sign_tx(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
@@ -44,7 +45,7 @@ void sign_transaction(tx_t* tx, ui_t* ui)
             roinput.bits_capacity = ARRAY_LEN(tx->input_bits);
             transaction_to_roinput(&roinput, &tx->tx);
 
-            if (!sign(&sig, &kp, &roinput, tx->network_id)) {
+            if (!sign(&sig, &kp, &roinput, tx->network_id, POSEIDON_LEGACY)) {
                 THROW(INVALID_PARAMETER);
             }
         }
