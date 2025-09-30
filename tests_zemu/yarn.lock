@@ -1315,10 +1315,10 @@
   dependencies:
     "@ledgerhq/hw-transport" "6.31.9"
 
-"@zondax/ledger-mina-js@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.npmjs.org/@zondax/ledger-mina-js/-/ledger-mina-js-0.1.0.tgz#85d2e758cb51d37512329598f073d70df5669d04"
-  integrity sha512-qHoBnAHgKEyyOyHuyXUK6VXcsl9jrgpq8c67kccyTR8XihO09Yd3DvRcjpdlGBU80/5R3ZtgSw54VwV8Rl83rw==
+"@zondax/ledger-mina-js@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@zondax/ledger-mina-js/-/ledger-mina-js-0.1.1.tgz#ccc5c39468a956773811430941934a9583df8ec3"
+  integrity sha512-jlq706Vgo5myZlW3DtK+8t+cVOEPMrLiAS6TIGWf2+vQksG8ghmTeMtPdNtBB4cPGTh2d9IOrRWseKum1hbeIw==
   dependencies:
     "@zondax/ledger-js" "^1.0.1"
 

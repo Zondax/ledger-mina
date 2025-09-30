@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@mina-wallet-adapter/mina-ledger-js": "^1.0.9",
-    "@zondax/ledger-mina-js": "^0.1.0",
+    "@zondax/ledger-mina-js": "^0.1.1",
     "@zondax/zemu": "^0.61.11",
     "mina-signer": "^3.0.7"
   },
