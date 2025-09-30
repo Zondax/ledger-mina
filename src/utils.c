@@ -163,6 +163,23 @@ uint64_t read_uint64_be(const uint8_t *buffer)
 
 char *amount_to_string(char *buf, const size_t len, uint64_t amount)
 {
+    if (amount == 0) {
+        size_t ticker_len = strlen(TICKER_WITH_SPACE);
+        size_t zero_len = strlen("0");
+        size_t total_len = ticker_len + zero_len + 1; // Take into account the null terminator
+
+        if (len < total_len) {
+            *buf = '\0';
+            return buf;
+        }
+
+        memcpy(buf, TICKER_WITH_SPACE, ticker_len);
+        memcpy(buf + ticker_len, "0", zero_len);
+        buf[ticker_len + zero_len] = '\0';
+
+        return buf;
+    }
+
     // COIN is 1.000 000 000;
     size_t mantissa_len = 1;
     for (uint64_t value = amount, _len = 9; value && _len > 0; value /= 10, _len--) {
