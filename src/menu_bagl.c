@@ -1,6 +1,10 @@
 #ifdef HAVE_BAGL
 #include "menu.h"
 
+#ifndef PRODUCTION_BUILD
+#define PRODUCTION_BUILD 0
+#endif
+
 #ifdef HAVE_ON_DEVICE_UNIT_TESTS
 UX_STEP_NOCB(
     ux_idle_flow_1_step,
@@ -9,6 +13,15 @@ UX_STEP_NOCB(
       &C_mina_logo,
       "Mina",
       "unit tests",
+    });
+#elif (PRODUCTION_BUILD == 0)
+UX_STEP_NOCB(
+    ux_idle_flow_1_step,
+    pnn,
+    {
+      &C_mina_logo,
+      "Mina DEMO",
+      "DO NOT USE",
     });
 #else
 UX_STEP_NOCB(
