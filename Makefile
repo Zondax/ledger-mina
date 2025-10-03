@@ -15,8 +15,29 @@
 #  limitations under the License.
 #*******************************************************************************
 
+# Docker build targets (don't require BOLOS_SDK)
+build:
+	@echo "Building all device variants using Docker..."
+	@./installer-builder/build.sh
+
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf build bin debug pkg installers
+	@echo "Clean completed"
+
+docker-clean:
+	@echo "Cleaning Docker build artifacts..."
+	@docker run --rm --user "$$(id -u):$$(id -g)" -v "$$(pwd):/app" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest make clean
+	@echo "Docker clean completed"
+
 ifeq ($(BOLOS_SDK),)
+ifneq ($(MAKECMDGOALS),build)
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),docker-clean)
 $(error Environment variable BOLOS_SDK is not set)
+endif
+endif
+endif
 endif
 
 ifndef COIN
@@ -114,11 +135,22 @@ else
 NO_STACK_CANARY=1
 endif
 
+# Production build flag (default to non-production for safety)
+PRODUCTION_BUILD ?= 0
+
+# Display whether this is a production build or for internal use
+ifeq ($(PRODUCTION_BUILD), 1)
+    $(info ************ PRODUCTION_BUILD  = [PRODUCTION BUILD])
+else
+    $(info ************ PRODUCTION_BUILD  = [INTERNAL USE - NOT FOR PRODUCTION])
+endif
+
 # App-specific defines
 DEFINES   += LEDGER_BUILD
 DEFINES   += UNUSED\(x\)=\(void\)x
 DEFINES   += APPNAME=\"$(APPNAME)\"
 DEFINES   += APPVERSION=\"$(APPVERSION)\"
+DEFINES   += PRODUCTION_BUILD=$(PRODUCTION_BUILD)
 
 ifneq ("$(MAKECMDGOALS)", "clean")
 ifneq ("$(MAKECMDGOALS)", "allclean")
@@ -184,7 +216,14 @@ HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
 ENABLE_BLUETOOTH = 1
 ENABLE_NBGL_QRCODE = 1
 
+ifneq ($(MAKECMDGOALS),build)
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),docker-clean)
 include $(BOLOS_SDK)/Makefile.standard_app
+include $(CURDIR)/installer-builder/Makefile.installer
+endif
+endif
+endif
 
 side_release: all
 	@# Must force clean like this because Ledger makefile always runs first
