@@ -23,7 +23,7 @@ jobs:
       - name: Build Nano X
         shell: bash -l {0}
         run: |
-          PRODUCTION_BUILD=0 make build
+          PRODUCTION_BUILD=0 make installers
 
       - name: Set tag
         id: nanox
@@ -55,7 +55,7 @@ jobs:
       - name: Build Nano S Plus
         shell: bash -l {0}
         run: |
-          PRODUCTION_BUILD=0 make build
+          PRODUCTION_BUILD=0 make installers
 
       - name: Set tag
         id: nanosp
@@ -86,7 +86,7 @@ jobs:
       - name: Build Stax
         shell: bash -l {0}
         run: |
-          PRODUCTION_BUILD=0 make build
+          PRODUCTION_BUILD=0 make installers
 
       - name: Set tag
         id: stax
@@ -117,7 +117,7 @@ jobs:
       - name: Build Flex
         shell: bash -l {0}
         run: |
-          PRODUCTION_BUILD=0 make build
+          PRODUCTION_BUILD=0 make installers
 
       - name: Set tag
         id: flex

@@ -15,23 +15,8 @@
 #  limitations under the License.
 #*******************************************************************************
 
-# Docker build targets (don't require BOLOS_SDK)
-build:
-	@echo "Building all device variants using Docker..."
-	@./installer-builder/build.sh
-
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf build bin debug pkg installers
-	@echo "Clean completed"
-
-docker-clean:
-	@echo "Cleaning Docker build artifacts..."
-	@docker run --rm --user "$$(id -u):$$(id -g)" -v "$$(pwd):/app" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest make clean
-	@echo "Docker clean completed"
-
 ifeq ($(BOLOS_SDK),)
-ifneq ($(MAKECMDGOALS),build)
+ifneq ($(MAKECMDGOALS),installers)
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),docker-clean)
 $(error Environment variable BOLOS_SDK is not set)
@@ -216,7 +201,7 @@ HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
 ENABLE_BLUETOOTH = 1
 ENABLE_NBGL_QRCODE = 1
 
-ifneq ($(MAKECMDGOALS),build)
+ifneq ($(MAKECMDGOALS),installers)
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),docker-clean)
 include $(BOLOS_SDK)/Makefile.standard_app
@@ -275,3 +260,18 @@ side_release: all
 	@rm -f install.sh
 	@rm -f uninstall.sh
 	@rm -f mina_ledger_wallet
+
+# Docker build targets (don't require BOLOS_SDK)
+installers:
+	@echo "Building all device variants and generating installers using Docker..."
+	@./installer-builder/build.sh
+
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf build bin debug pkg installers
+	@echo "Clean completed"
+
+docker-clean:
+	@echo "Cleaning Docker build artifacts..."
+	@docker run --rm --user "$$(id -u):$$(id -g)" -v "$$(pwd):/app" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest make clean
+	@echo "Docker clean completed"

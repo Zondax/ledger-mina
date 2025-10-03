@@ -23,7 +23,7 @@ installer-builder/
 
 ### Build all device variants with installers:
 ```bash
-make build
+make installers
 ```
 
 This will:
@@ -129,7 +129,7 @@ Removes all build artifacts and generated installers.
 - Exit any running apps on the device
 
 ### Build artifacts missing
-- Run `make build` to build all devices and generate installers
+- Run `make installers` to build all devices and generate installers
 - Check that builds completed successfully
 
 ## Advanced Usage
