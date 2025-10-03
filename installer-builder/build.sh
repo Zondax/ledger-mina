@@ -16,6 +16,18 @@ else
     echo "Building DEVELOPMENT version (set PRODUCTION_BUILD=1 for production)"
 fi
 
+# Function to map device name to installer suffix
+get_installer_suffix() {
+    local device="$1"
+    case "$device" in
+        nanox) echo "x" ;;
+        nanosp) echo "s2" ;;
+        stax) echo "stax" ;;
+        flex) echo "flex" ;;
+        *) echo "$device" ;;
+    esac
+}
+
 # Supported devices (device:SDK pairs)
 DEVICES=(
     "nanox:NANOX_SDK"
@@ -57,14 +69,8 @@ for device_pair in "${DEVICES[@]}"; do
         $DOCKER_IMAGE \
         bash -c "export BOLOS_SDK=\$${sdk_var} && make all RELEASE_BUILD=1 PRODUCTION_BUILD=${PRODUCTION_BUILD} && make installer"
 
-    # Map device name to installer suffix
-    case "$device" in
-        nanox) installer_suffix="x" ;;
-        nanosp) installer_suffix="s2" ;;
-        stax) installer_suffix="stax" ;;
-        flex) installer_suffix="flex" ;;
-        *) installer_suffix="$device" ;;
-    esac
+    # Get installer suffix for this device
+    installer_suffix=$(get_installer_suffix "$device")
 
     echo ""
     echo "✓ Build completed for ${device_upper}"
@@ -90,14 +96,7 @@ echo ""
 echo "Installer scripts:"
 for device_pair in "${DEVICES[@]}"; do
     device="${device_pair%%:*}"
-    # Map device name to installer suffix
-    case "$device" in
-        nanox) installer_suffix="x" ;;
-        nanosp) installer_suffix="s2" ;;
-        stax) installer_suffix="stax" ;;
-        flex) installer_suffix="flex" ;;
-        *) installer_suffix="$device" ;;
-    esac
+    installer_suffix=$(get_installer_suffix "$device")
 
     if [ -f "pkg/installer_${installer_suffix}.sh" ]; then
         SIZE=$(ls -lh "pkg/installer_${installer_suffix}.sh" | awk '{print $5}')
