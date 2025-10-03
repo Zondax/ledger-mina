@@ -1,0 +1,63 @@
+#*******************************************************************************
+#  Ledger Mina App - Installer Generation
+#  Adapted from Zondax ledger-zxlib
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#*******************************************************************************
+
+# This Makefile fragment generates installer scripts for each device
+# It must be included after the SDK's Makefile.standard_app so that
+# APP_LOAD_PARAMS and COMMON_DELETE_PARAMS are properly populated
+
+INSTALLER_TEMPLATE := $(CURDIR)/installer-builder/template.sh
+PKG_DIR := $(CURDIR)/pkg
+
+# Ensure pkg directory exists
+$(shell mkdir -p $(PKG_DIR))
+
+# Device-specific installer output paths
+ifeq ($(TARGET_NAME),TARGET_NANOS)
+OUTPUT_INSTALLER := $(PKG_DIR)/installer_s.sh
+endif
+
+ifeq ($(TARGET_NAME),TARGET_NANOX)
+OUTPUT_INSTALLER := $(PKG_DIR)/installer_x.sh
+endif
+
+ifeq ($(TARGET_NAME),TARGET_NANOS2)
+OUTPUT_INSTALLER := $(PKG_DIR)/installer_s2.sh
+endif
+
+ifeq ($(TARGET_NAME),TARGET_STAX)
+OUTPUT_INSTALLER := $(PKG_DIR)/installer_stax.sh
+endif
+
+ifeq ($(TARGET_NAME),TARGET_FLEX)
+OUTPUT_INSTALLER := $(PKG_DIR)/installer_flex.sh
+endif
+
+.PHONY: installer
+installer:
+	@echo "Generating installer: $(OUTPUT_INSTALLER)"
+	@echo "#!/usr/bin/env bash" > $(OUTPUT_INSTALLER)
+	@echo "APPNAME=\"${APPNAME}\"" >> $(OUTPUT_INSTALLER)
+	@echo "APPVERSION=\"${APPVERSION}\"" >> $(OUTPUT_INSTALLER)
+	@echo "APPPATH=(\"$(APPPATH)\")" >> $(OUTPUT_INSTALLER)
+	@echo "LOAD_PARAMS=($$(echo "${APP_LOAD_PARAMS}" | sed -e "s|\"${APPNAME}\"|\\\\\"${APPNAME}\\\\\"|g"))" >> $(OUTPUT_INSTALLER)
+	@echo "DELETE_PARAMS=($$(echo "${COMMON_DELETE_PARAMS}" | sed -e "s|\"${APPNAME}\"|\\\\\"${APPNAME}\\\\\"|g"))" >> $(OUTPUT_INSTALLER)
+	@echo "APPHEX=\"" >> $(OUTPUT_INSTALLER)
+	@cat $(CURDIR)/bin/app.hex >> $(OUTPUT_INSTALLER)
+	@echo "\"" >> $(OUTPUT_INSTALLER)
+	@tail -n +2 $(INSTALLER_TEMPLATE) >> $(OUTPUT_INSTALLER)
+	@chmod +x $(OUTPUT_INSTALLER)
+	@echo "✓ Installer generated: $(OUTPUT_INSTALLER)"
