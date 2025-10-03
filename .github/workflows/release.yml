@@ -1,0 +1,134 @@
+name: Build and Release Installers
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_package_nanox:
+    name: Build Nano X Installer
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Nano X
+        shell: bash -l {0}
+        run: |
+          PRODUCTION_BUILD=0 make build
+
+      - name: Set tag
+        id: nanox
+        run: echo "tag_name=$(./pkg/installer_x.sh version)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ./pkg/installer_x.sh
+          tag_name: ${{ steps.nanox.outputs.tag_name }}
+          draft: false
+          prerelease: false
+          name: Release ${{ steps.nanox.outputs.tag_name }}
+
+  build_package_nanosp:
+    name: Build Nano S Plus Installer
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Nano S Plus
+        shell: bash -l {0}
+        run: |
+          PRODUCTION_BUILD=0 make build
+
+      - name: Set tag
+        id: nanosp
+        run: echo "tag_name=$(./pkg/installer_s2.sh version)" >> $GITHUB_OUTPUT
+
+      - name: Update Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ./pkg/installer_s2.sh
+          tag_name: ${{ steps.nanosp.outputs.tag_name }}
+          draft: false
+          prerelease: false
+
+  build_package_stax:
+    name: Build Stax Installer
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Stax
+        shell: bash -l {0}
+        run: |
+          PRODUCTION_BUILD=0 make build
+
+      - name: Set tag
+        id: stax
+        run: echo "tag_name=$(./pkg/installer_stax.sh version)" >> $GITHUB_OUTPUT
+
+      - name: Update Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ./pkg/installer_stax.sh
+          tag_name: ${{ steps.stax.outputs.tag_name }}
+          draft: false
+          prerelease: false
+
+  build_package_flex:
+    name: Build Flex Installer
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Flex
+        shell: bash -l {0}
+        run: |
+          PRODUCTION_BUILD=0 make build
+
+      - name: Set tag
+        id: flex
+        run: echo "tag_name=$(./pkg/installer_flex.sh version)" >> $GITHUB_OUTPUT
+
+      - name: Update Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ./pkg/installer_flex.sh
+          tag_name: ${{ steps.flex.outputs.tag_name }}
+          draft: false
+          prerelease: false
