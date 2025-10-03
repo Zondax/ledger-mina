@@ -120,14 +120,17 @@ else
 NO_STACK_CANARY=1
 endif
 
-# Production build flag (default to non-production for safety)
-PRODUCTION_BUILD ?= 0
-
-# Display whether this is a production build or for internal use
-ifeq ($(PRODUCTION_BUILD), 1)
-    $(info ************ PRODUCTION_BUILD  = [PRODUCTION BUILD])
+# Production build flag (only set if explicitly provided)
+ifdef PRODUCTION_BUILD
+    ifeq ($(PRODUCTION_BUILD), 1)
+        $(info ************ PRODUCTION_BUILD  = [PRODUCTION BUILD])
+    else
+        $(info ************ PRODUCTION_BUILD  = [INTERNAL USE - NOT FOR PRODUCTION])
+    endif
+    DEFINES += PRODUCTION_BUILD=$(PRODUCTION_BUILD)
 else
-    $(info ************ PRODUCTION_BUILD  = [INTERNAL USE - NOT FOR PRODUCTION])
+    # Default: don't define PRODUCTION_BUILD at all (SDK default behavior)
+    DEFINES += PRODUCTION_BUILD=1
 endif
 
 # App-specific defines
@@ -135,7 +138,6 @@ DEFINES   += LEDGER_BUILD
 DEFINES   += UNUSED\(x\)=\(void\)x
 DEFINES   += APPNAME=\"$(APPNAME)\"
 DEFINES   += APPVERSION=\"$(APPVERSION)\"
-DEFINES   += PRODUCTION_BUILD=$(PRODUCTION_BUILD)
 
 ifneq ("$(MAKECMDGOALS)", "clean")
 ifneq ("$(MAKECMDGOALS)", "allclean")
