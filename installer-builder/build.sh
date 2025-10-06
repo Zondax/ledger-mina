@@ -41,9 +41,14 @@ echo "Ledger Mina App - Docker Build Script"
 echo "========================================"
 echo ""
 
-# Pull the latest Docker image
-echo "Pulling latest Docker image..."
-docker pull $DOCKER_IMAGE
+# Detect if running inside CI/container environment
+# Check for CI environment variable or if we're inside the Ledger container
+IN_CONTAINER=0
+if [ -n "$CI" ] || [ -n "$NANOX_SDK" ] || [ -n "$NANOSP_SDK" ] || [ -n "$STAX_SDK" ] || [ -n "$FLEX_SDK" ]; then
+    IN_CONTAINER=1
+    echo "Detected CI/container environment - running directly without Docker"
+    echo ""
+fi
 
 echo ""
 echo "Starting build process..."
@@ -51,7 +56,17 @@ echo ""
 
 # Clean before building
 echo "Cleaning previous build artifacts..."
-docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd):/app" $DOCKER_IMAGE make clean
+if [ "$IN_CONTAINER" = "0" ]; then
+    # Running locally - use Docker
+    # Pull the latest Docker image
+    echo "Pulling latest Docker image..."
+    docker pull $DOCKER_IMAGE
+
+    docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd):/app" $DOCKER_IMAGE make clean
+else
+    # Running in CI/container - run directly
+    make clean
+fi
 echo ""
 
 # Build for each device
@@ -64,10 +79,15 @@ for device_pair in "${DEVICES[@]}"; do
     echo "Building for ${device_upper} (SDK: $sdk_var)"
     echo "========================================"
 
-    # Build with the correct SDK and generate installer (each device builds to its own directory)
-    docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd):/app" \
-        $DOCKER_IMAGE \
-        bash -c "export BOLOS_SDK=\$${sdk_var} && make all RELEASE_BUILD=1 PRODUCTION_BUILD=${PRODUCTION_BUILD} && make installer"
+    build_cmd="export BOLOS_SDK=\$${sdk_var} && make all RELEASE_BUILD=1 PRODUCTION_BUILD=${PRODUCTION_BUILD} && make installer"
+
+    runner_prefix=()
+    if [ "$IN_CONTAINER" = "0" ]; then
+        # Build with Docker
+        runner_prefix=(docker run --rm --user "$(id -u):$(id -g)" -v "$(pwd):/app" "$DOCKER_IMAGE")
+    fi
+
+    "${runner_prefix[@]}" bash -c "${build_cmd}"
 
     # Get installer suffix for this device
     installer_suffix=$(get_installer_suffix "$device")
