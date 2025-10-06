@@ -129,7 +129,6 @@ ifdef PRODUCTION_BUILD
     endif
     DEFINES += PRODUCTION_BUILD=$(PRODUCTION_BUILD)
 else
-    # Default: don't define PRODUCTION_BUILD at all (SDK default behavior)
     DEFINES += PRODUCTION_BUILD=1
 endif
 
