@@ -98,6 +98,9 @@ jobs:
         with:
           path: installers
 
+      - name: Install ledgerblue
+        run: pip install --break-system-packages ledgerblue
+
       - name: Get tag name
         id: tag
         run: |
