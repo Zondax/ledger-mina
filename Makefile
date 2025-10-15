@@ -36,8 +36,8 @@ VARIANT_VALUES=$(COIN)
 GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
-APPVERSION_N=4
-APPVERSION_P=8
+APPVERSION_N=5
+APPVERSION_P=0
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
@@ -67,6 +67,7 @@ ICON_NANOX = icons/nanox_app_mina.gif
 ICON_NANOSP = icons/nanox_app_mina.gif
 ICON_STAX = icons/stax_app_mina.gif
 ICON_FLEX = icons/flex_app_mina.gif
+ICON_APEX_P = icons/apex_p_app_mina.png
 
 ################
 # Default rule #
