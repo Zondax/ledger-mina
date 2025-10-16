@@ -54,3 +54,29 @@ class PreauthNavigator:
 @pytest.fixture(scope="function")
 def preauth_navigator(navigator, firmware, default_screenshot_path, test_name) -> PreauthNavigator:
     return PreauthNavigator(navigator, firmware, default_screenshot_path, test_name)
+
+class DeviceSpecificScenarioNavigator:
+    """Wrapper around scenario_navigator that fixes ragger 1.40.2 navigation issues"""
+    def __init__(self, original_navigator, firmware):
+        self._original = original_navigator
+        self._firmware = firmware
+        
+    def review_approve(self, **kwargs):
+        """Device-specific review_approve that handles ragger 1.40.2 navigation"""
+        # For all nano devices with ragger 1.40.2, override the text pattern to match what Zemu uses
+        if hasattr(self._firmware, 'is_nano') and self._firmware.is_nano:
+            kwargs['custom_screen_text'] = 'Approve'
+        return self._original.review_approve(**kwargs)
+        
+    def address_review_approve(self, **kwargs):
+        """Delegate address review to original navigator"""
+        return self._original.address_review_approve(**kwargs)
+        
+    def __getattr__(self, name):
+        """Delegate all other methods to original navigator"""
+        return getattr(self._original, name)
+
+@pytest.fixture(scope="function")
+def scenario_navigator(scenario_navigator, firmware):
+    """Override scenario_navigator with device-specific wrapper"""
+    return DeviceSpecificScenarioNavigator(scenario_navigator, firmware)
