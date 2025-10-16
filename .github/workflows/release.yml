@@ -117,7 +117,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: installer-apex-p
+          name: installer-apex_p
           path: ./pkg/installer_apex_p.sh
 
   create_release:
@@ -150,7 +150,7 @@ jobs:
             installers/installer-nanosp/installer_s2.sh
             installers/installer-stax/installer_stax.sh
             installers/installer-flex/installer_flex.sh
-            installers/installer-apex-p/installer_apex_p.sh
+            installers/installer-apex_p/installer_apex_p.sh
           tag_name: ${{ steps.tag.outputs.tag_name }}
           draft: false
           prerelease: false
