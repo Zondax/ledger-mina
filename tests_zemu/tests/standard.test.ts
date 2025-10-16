@@ -38,7 +38,7 @@ describe('Standard', function () {
       const options = setTextOptionsStandardTests(m)
       await sim.start({ ...options, model: m.name })
       let nav
-      if (m.name === 'stax' || m.name === 'flex') {
+      if (isTouchDevice(m.name)) {
         // main menu fits in a single screen
         nav = new TouchNavigation(m.name, [
           ButtonKind.InfoButton,
@@ -63,7 +63,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.4.8')
+      expect(resp.version).toEqual('1.5.0')
     } finally {
       await sim.close()
     }
@@ -86,7 +86,7 @@ describe('Standard', function () {
   })
 
   describe.each(ADDRESS_DATA)('get address', function (data) {
-    test.concurrent.each(models)(`${data.name}`, async function (m) {
+    test.concurrent.each(models)(`get_${data.name}`, async function (m) {
       const sim = new Zemu(m.path)
       try {
         const options = setTextOptionsStandardTests(m)
@@ -105,7 +105,7 @@ describe('Standard', function () {
     })
 
 describe.each(ADDRESS_DATA)('show address', function (data) {
-  test.concurrent.each(models)(`${data.name}`, async function (m) {
+  test.concurrent.each(models)(`show_${data.name}`, async function (m) {
     const sim = new Zemu(m.path)
     try {
       const options = setTextOptionsStandardTests(m)
@@ -136,7 +136,7 @@ describe.each(ADDRESS_DATA)('show address', function (data) {
 function setTextOptionsStandardTests(m: IDeviceModel) {
   const options = { ...defaultOptions }
   if (isTouchDevice(m.name)) {
-    options.approveAction = 15 /* ButtonKind.ConfirmYesButton */
+    options.approveAction = ButtonKind.ApproveTapButton
     options.approveKeyword = 'Confirm'
     options.startText = 'This app enables'
   } else {

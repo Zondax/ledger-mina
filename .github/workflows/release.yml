@@ -88,10 +88,34 @@ jobs:
           name: installer-flex
           path: ./pkg/installer_flex.sh
 
+  build_package_apex_p:
+    name: Build Apex P Installer
+    runs-on: ubuntu-latest
+    needs: check_success
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Apex P
+        shell: bash -l {0}
+        run: |
+          PRODUCTION_BUILD=0 make installers
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-apex-p
+          path: ./pkg/installer_apex_p.sh
+
   create_release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build_package_nanosp, build_package_stax, build_package_flex]
+    needs: [build_package_nanosp, build_package_stax, build_package_flex, build_package_apex_p]
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4

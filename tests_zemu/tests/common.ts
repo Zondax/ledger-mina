@@ -8,12 +8,14 @@ const APP_PATH_X = resolve('../build/nanox/bin/app.elf')
 const APP_PATH_SP = resolve('../build/nanos2/bin/app.elf')
 const APP_PATH_ST = resolve('../build/stax/bin/app.elf')
 const APP_PATH_FL = resolve('../build/flex/bin/app.elf')
+const APP_PATH_AP = resolve('../build/apex_p/bin/app.elf')
 
 export const models: IDeviceModel[] = [
   { name: 'nanox', prefix: 'X', path: APP_PATH_X },
   { name: 'nanosp', prefix: 'SP', path: APP_PATH_SP },
   { name: 'stax', prefix: 'ST', path: APP_PATH_ST },
   { name: 'flex', prefix: 'FL', path: APP_PATH_FL },
+  { name: 'apex_p', prefix: 'AP', path: APP_PATH_AP },
 ]
 
 export const PATH = "m/44'/123'/0'/0/0"
