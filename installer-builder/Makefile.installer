@@ -46,6 +46,10 @@ ifeq ($(TARGET_NAME),TARGET_FLEX)
 OUTPUT_INSTALLER := $(PKG_DIR)/installer_flex.sh
 endif
 
+ifeq ($(TARGET_NAME),TARGET_APEX_P)
+OUTPUT_INSTALLER := $(PKG_DIR)/installer_apex_p.sh
+endif
+
 .PHONY: installer
 installer:
 	@echo "Generating installer: $(OUTPUT_INSTALLER)"

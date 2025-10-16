@@ -9,6 +9,10 @@ on:
       - master
       - main
   workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+      - main
 
 jobs:
   check_success:
@@ -35,6 +39,7 @@ jobs:
           PRODUCTION_BUILD=0 make installers
 
       - name: Upload installer artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: installer-nanosp
@@ -59,6 +64,7 @@ jobs:
           PRODUCTION_BUILD=0 make installers
 
       - name: Upload installer artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: installer-stax
@@ -83,6 +89,7 @@ jobs:
           PRODUCTION_BUILD=0 make installers
 
       - name: Upload installer artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: installer-flex
@@ -107,6 +114,7 @@ jobs:
           PRODUCTION_BUILD=0 make installers
 
       - name: Upload installer artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: installer-apex-p
@@ -115,6 +123,7 @@ jobs:
   create_release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     needs: [build_package_nanosp, build_package_stax, build_package_flex, build_package_apex_p]
     steps:
       - name: Download all artifacts
@@ -141,6 +150,7 @@ jobs:
             installers/installer-nanosp/installer_s2.sh
             installers/installer-stax/installer_stax.sh
             installers/installer-flex/installer_flex.sh
+            installers/installer-apex-p/installer_apex_p.sh
           tag_name: ${{ steps.tag.outputs.tag_name }}
           draft: false
           prerelease: false
