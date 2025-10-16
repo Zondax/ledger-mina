@@ -24,6 +24,7 @@ get_installer_suffix() {
         nanosp) echo "s2" ;;
         stax) echo "stax" ;;
         flex) echo "flex" ;;
+        apex_p) echo "apex_p" ;;
         *) echo "$device" ;;
     esac
 }
@@ -34,6 +35,7 @@ DEVICES=(
     "nanosp:NANOSP_SDK"
     "stax:STAX_SDK"
     "flex:FLEX_SDK"
+    "apex_p:APEX_P_SDK"
 )
 
 echo "========================================"
@@ -44,7 +46,7 @@ echo ""
 # Detect if running inside CI/container environment
 # Check for CI environment variable or if we're inside the Ledger container
 IN_CONTAINER=0
-if [ -n "$CI" ] || [ -n "$NANOX_SDK" ] || [ -n "$NANOSP_SDK" ] || [ -n "$STAX_SDK" ] || [ -n "$FLEX_SDK" ]; then
+if [ -n "$CI" ] || [ -n "$NANOX_SDK" ] || [ -n "$NANOSP_SDK" ] || [ -n "$STAX_SDK" ] || [ -n "$FLEX_SDK" ] || [ -n "$APEX_P_SDK" ]; then
     IN_CONTAINER=1
     echo "Detected CI/container environment - running directly without Docker"
     echo ""
@@ -126,5 +128,5 @@ for device_pair in "${DEVICES[@]}"; do
     fi
 done
 echo ""
-echo "Usage: ./pkg/installer_{x,s2,stax,flex}.sh load"
+echo "Usage: ./pkg/installer_{x,s2,stax,flex,apex_p}.sh load"
 echo ""
