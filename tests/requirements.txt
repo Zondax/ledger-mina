@@ -1,5 +1,5 @@
 base58
 bip32
-ragger[tests,speculos]==1.32.1
+ragger[tests,speculos]==1.40.2
 ledgerblue
 toml

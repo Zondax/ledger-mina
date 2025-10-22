@@ -16,7 +16,13 @@
 #*******************************************************************************
 
 ifeq ($(BOLOS_SDK),)
+ifneq ($(MAKECMDGOALS),installers)
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),docker-clean)
 $(error Environment variable BOLOS_SDK is not set)
+endif
+endif
+endif
 endif
 
 ifndef COIN
@@ -30,8 +36,8 @@ VARIANT_VALUES=$(COIN)
 GIT_DESCRIBE=$(shell git describe --tags --abbrev=8 --always --long --dirty 2>/dev/null)
 VERSION_TAG=$(shell echo $(GIT_DESCRIBE) | sed 's/^v//g')
 APPVERSION_M=1
-APPVERSION_N=4
-APPVERSION_P=6
+APPVERSION_N=5
+APPVERSION_P=1
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Mina"
 
@@ -61,6 +67,7 @@ ICON_NANOX = icons/nanox_app_mina.gif
 ICON_NANOSP = icons/nanox_app_mina.gif
 ICON_STAX = icons/stax_app_mina.gif
 ICON_FLEX = icons/flex_app_mina.gif
+ICON_APEX_P = icons/apex_p_app_mina.png
 
 ################
 # Default rule #
@@ -112,6 +119,18 @@ ifeq ($(shell echo $(DEFINES) | grep -c HAVE_BOLOS_APP_STACK_CANARY), 0)
 NO_STACK_CANARY=0
 else
 NO_STACK_CANARY=1
+endif
+
+# Production build flag (only set if explicitly provided)
+ifdef PRODUCTION_BUILD
+    ifeq ($(PRODUCTION_BUILD), 1)
+        $(info ************ PRODUCTION_BUILD  = [PRODUCTION BUILD])
+    else
+        $(info ************ PRODUCTION_BUILD  = [INTERNAL USE - NOT FOR PRODUCTION])
+    endif
+    DEFINES += PRODUCTION_BUILD=$(PRODUCTION_BUILD)
+else
+    DEFINES += PRODUCTION_BUILD=1
 endif
 
 # App-specific defines
@@ -184,7 +203,14 @@ HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
 ENABLE_BLUETOOTH = 1
 ENABLE_NBGL_QRCODE = 1
 
+ifneq ($(MAKECMDGOALS),installers)
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),docker-clean)
 include $(BOLOS_SDK)/Makefile.standard_app
+include $(CURDIR)/installer-builder/Makefile.installer
+endif
+endif
+endif
 
 side_release: all
 	@# Must force clean like this because Ledger makefile always runs first
@@ -236,3 +262,18 @@ side_release: all
 	@rm -f install.sh
 	@rm -f uninstall.sh
 	@rm -f mina_ledger_wallet
+
+# Docker build targets (don't require BOLOS_SDK)
+installers:
+	@echo "Building all device variants and generating installers using Docker..."
+	@./installer-builder/build.sh
+
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf build bin debug pkg installers
+	@echo "Clean completed"
+
+docker-clean:
+	@echo "Cleaning Docker build artifacts..."
+	@docker run --rm --user "$$(id -u):$$(id -g)" -v "$$(pwd):/app" ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest make clean
+	@echo "Docker clean completed"
