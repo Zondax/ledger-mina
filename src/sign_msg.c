@@ -80,10 +80,14 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
         THROW(INVALID_PARAMETER);
     }
 
-    for (uint8_t i = 0; i < dataLength; i++) {
-        uint8_t digit = dataBuffer[i];
-        if (digit != '\r' && digit != '\n' && !IS_PRINTABLE(digit)) {
-            THROW(INVALID_PARAMETER);
+    // Only enforce printable ASCII for legacy message signing.
+    // Field element signing (kimchi mode) uses raw bytes.
+    if (poseidon_mode == POSEIDON_LEGACY) {
+        for (uint8_t i = 0; i < dataLength; i++) {
+            uint8_t digit = dataBuffer[i];
+            if (digit != '\r' && digit != '\n' && !IS_PRINTABLE(digit)) {
+                THROW(INVALID_PARAMETER);
+            }
         }
     }
 
