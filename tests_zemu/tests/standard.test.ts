@@ -39,13 +39,15 @@ describe('Standard', function () {
       await sim.start({ ...options, model: m.name })
       let nav
       if (isTouchDevice(m.name)) {
-        // main menu fits in a single screen
+        // Navigate through settings: Info -> navigate to see blind signing -> quit
         nav = new TouchNavigation(m.name, [
-          ButtonKind.InfoButton,
-          ButtonKind.SettingsQuitButton,
+          ButtonKind.InfoButton,           // Open info/settings
+          ButtonKind.SettingsNavRightButton, // Navigate to see blind signing setting
+          ButtonKind.SettingsQuitButton,   // Exit settings
         ]);
       } else {
-        nav = zondaxMainmenuNavigation(m.name, [1, 1, 1, 1, 1, -5])
+        // Navigate through: Mina -> Version -> Developer -> Copyright -> Blind signing -> Quit
+        nav = zondaxMainmenuNavigation(m.name, [1, 1, 1, 1, 1, 1, -6])
       }
       await sim.navigateAndCompareSnapshots('.', `${m.prefix.toLowerCase()}-mainmenu`, nav.schedule)
     } finally {

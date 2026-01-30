@@ -18,6 +18,7 @@ struct {
     uint8_t dataBufLength;
 } _msgData;
 static uint8_t _netId;
+static poseidon_mode_t _mode;
 
 typedef struct 
 {
@@ -45,20 +46,32 @@ static void review_choice(bool confirm)
 static void prepare_msg_context(void) {
     uint8_t nbPairs = 0;
 
-    if (_netId != MAINNET_ID) 
+    if (_netId != MAINNET_ID)
     {
         messageContext.tagValuePair[nbPairs].item = "Network";
         messageContext.tagValuePair[nbPairs].value = "Testnet";
         nbPairs++;
     }
 
-
-    messageContext.tagValuePair[nbPairs].item = "Message";
+    if (_mode == POSEIDON_KIMCHI) {
+        messageContext.tagValuePair[nbPairs].item = "fullCommitment";
+    } else {
+        messageContext.tagValuePair[nbPairs].item = "Message";
+    }
     messageContext.tagValuePair[nbPairs].value = _msgData.msgDataBuf;
     nbPairs++;
 
     messageContext.tagValueList.pairs = messageContext.tagValuePair;
     messageContext.tagValueList.nbPairs = nbPairs;
+}
+
+static void blind_disabled_callback(void) {
+    sendResponse(0, false);
+    ui_idle();
+}
+
+void ui_sign_msg_blind_disabled(void) {
+    nbgl_useCaseStatus("Blind signing\nnot enabled", false, blind_disabled_callback);
 }
 
 void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id, poseidon_mode_t mode)
@@ -70,6 +83,7 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id, poseid
     memset(_msgData.msgDataBuf, 0, sizeof(_msgData.msgDataBuf));
     memset(_msgData.rawDataBuf, 0, sizeof(_msgData.rawDataBuf));
     _msgData.dataBufLength = dataLength;
+    _mode = mode;
 
     // Always store raw bytes for signing
     memcpy(_msgData.rawDataBuf, dataBuffer, dataLength);
@@ -83,12 +97,26 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id, poseid
     _netId = net_id;
 
     prepare_msg_context();
-    nbgl_useCaseReview(TYPE_TRANSACTION,
-                        &messageContext.tagValueList,
-                        &C_Mina_64px,
-                        "Review message",
-                        NULL,
-                        "Sign message",
-                        review_choice);
+
+    if (mode == POSEIDON_KIMCHI) {
+        // Field element signing with blind signing warning
+        nbgl_useCaseReviewBlindSigning(TYPE_TRANSACTION | BLIND_OPERATION,
+                            &messageContext.tagValueList,
+                            &C_Mina_64px,
+                            "Review\nfullCommitment",
+                            NULL,
+                            "Accept risk and\nsign fullCommitment?",
+                            NULL,
+                            review_choice);
+    } else {
+        // Legacy message signing
+        nbgl_useCaseReview(TYPE_TRANSACTION,
+                            &messageContext.tagValueList,
+                            &C_Mina_64px,
+                            "Review message",
+                            NULL,
+                            "Sign message",
+                            review_choice);
+    }
 }
 #endif // HAVE_NBGL

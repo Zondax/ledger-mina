@@ -15,6 +15,7 @@ extern unsigned int ux_step_count;
 
 typedef struct internalStorage_t {
     uint8_t initialized;
+    uint8_t blindsign_enabled;  // 0x00 = disabled (default), 0x01 = enabled
 } internalStorage_t;
 
 extern const internalStorage_t N_storage_real;

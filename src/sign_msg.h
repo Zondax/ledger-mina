@@ -16,4 +16,6 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
 
 void ui_sign_msg(uint8_t* dataBuffer, uint8_t dataLength, uint8_t net_id, poseidon_mode_t mode);
 
+void ui_sign_msg_blind_disabled(void);
+
 void sign_message(uint8_t *dataBuffer, uint8_t dataLength);

@@ -319,6 +319,7 @@ void nv_app_state_init(void) {
     if (N_storage.initialized != 0x01) {
         internalStorage_t storage;
         storage.initialized = 0x01;
+        storage.blindsign_enabled = 0x00;  // Disabled by default
         nvm_write((internalStorage_t*)&N_storage, (void*)&storage, sizeof(internalStorage_t));
     }
 }
