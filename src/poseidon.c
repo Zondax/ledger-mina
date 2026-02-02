@@ -2827,11 +2827,11 @@ void poseidon_permutation(State s, poseidon_mode_t mode)
     }
 }
 
-inline void poseidon_init(State s, const uint8_t network_id, poseidon_mode_t mode)
+inline bool poseidon_init(State s, const uint8_t network_id, poseidon_mode_t mode)
 {
     // Select the appropriate pre-computed IV based on network ID and mode
     const State *iv = NULL;
-    
+
     if (mode == POSEIDON_KIMCHI) {
         switch (network_id) {
             case TESTNET_ID:
@@ -2851,13 +2851,14 @@ inline void poseidon_init(State s, const uint8_t network_id, poseidon_mode_t mod
                 break;
         }
     }
-    
+
     if (iv != NULL) {
         memmove(s, *iv, sizeof(State));
-    } else {
-        // Invalid network ID - initialize to zero
-        memset(s, 0, sizeof(State));
+        return true;
     }
+    // Invalid network ID - initialize to zero
+    memset(s, 0, sizeof(State));
+    return false;
 }
 
 void poseidon_update(State s, const Field *input, const size_t len, poseidon_mode_t mode)

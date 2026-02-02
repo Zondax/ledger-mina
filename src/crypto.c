@@ -699,7 +699,9 @@ bool message_hash(Scalar out, const Affine *pub, const Field rx, const ROInput *
 
     // Initial sponge state
     State pos;
-    poseidon_init(pos, network_id, mode);
+    if (!poseidon_init(pos, network_id, mode)) {
+        return false;
+    }
     poseidon_update(pos, hash_msg, hash_msg_len, mode);
     poseidon_digest(out, pos);
 
