@@ -652,10 +652,10 @@ bool validate_address(const char *address)
     return memcmp(raw->checksum, hash2, 4) == 0;
 }
 
-bool message_derive(Scalar out, const Keypair *kp, const ROInput *input, const uint8_t network_id)
+bool message_derive(Scalar out, const Keypair *kp, const ROInput *input, const uint8_t network_id, poseidon_mode_t mode)
 {
     uint8_t derive_msg[268] = { };
-    int derive_len = roinput_derive_message(derive_msg, sizeof(derive_msg), kp, input, network_id);
+    int derive_len = roinput_derive_message(derive_msg, sizeof(derive_msg), kp, input, network_id, mode);
     if (derive_len < 0) {
         return false;
     }
@@ -689,7 +689,7 @@ bool message_derive(Scalar out, const Keypair *kp, const ROInput *input, const u
     return true;
 }
 
-bool message_hash(Scalar out, const Affine *pub, const Field rx, const ROInput *input, const uint8_t network_id)
+bool message_hash(Scalar out, const Affine *pub, const Field rx, const ROInput *input, const uint8_t network_id, poseidon_mode_t mode)
 {
     Field hash_msg[9];
     int hash_msg_len = roinput_hash_message(hash_msg, sizeof(hash_msg), pub, rx, input);
@@ -699,14 +699,16 @@ bool message_hash(Scalar out, const Affine *pub, const Field rx, const ROInput *
 
     // Initial sponge state
     State pos;
-    poseidon_init(pos, network_id);
-    poseidon_update(pos, hash_msg, hash_msg_len);
+    if (!poseidon_init(pos, network_id, mode)) {
+        return false;
+    }
+    poseidon_update(pos, hash_msg, hash_msg_len, mode);
     poseidon_digest(out, pos);
 
     return true;
 }
 
-bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t network_id)
+bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t network_id, poseidon_mode_t mode)
 {
     Scalar k;
     Affine r;
@@ -716,7 +718,7 @@ bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t
     BEGIN_TRY {
         TRY {
             // k = message_derive(input.fields + kp.pub + input.bits + kp.priv)
-            if (!message_derive(k, kp, input, network_id)) {
+            if (!message_derive(k, kp, input, network_id, mode)) {
                 THROW(INVALID_PARAMETER);
             }
 
@@ -737,7 +739,7 @@ bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t
             }
 
             // e = message_hash(input + kp.pub + r.x)
-            if (!message_hash(sig->s, &kp->pub, r.x, input, network_id)) {
+            if (!message_hash(sig->s, &kp->pub, r.x, input, network_id, mode)) {
                 THROW(INVALID_PARAMETER);
             }
 

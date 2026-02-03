@@ -274,6 +274,18 @@ bool packed_bit_array_get(const uint8_t *bits, const size_t i)
     return (bits[byte_idx] >> in_byte_idx) & 1;
 }
 
+static const char HEX_CHARS[] = "0123456789abcdef";
+
+void bytes_to_hex_display(char *out, size_t out_len, const uint8_t *in, size_t in_len)
+{
+    // Convert bytes to hex string, reversing byte order for big-endian display
+    for (size_t i = 0; i < in_len && (i * 2 + 1) < out_len; i++) {
+        uint8_t byte = in[in_len - 1 - i];  // Reverse for big-endian display
+        out[i * 2] = HEX_CHARS[byte >> 4];
+        out[i * 2 + 1] = HEX_CHARS[byte & 0x0f];
+    }
+}
+
 // Note: does not validate the address
 void read_public_key_compressed(Compressed *out, const char *address)
 {
