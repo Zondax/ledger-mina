@@ -122,7 +122,7 @@ describe.each(ADDRESS_DATA)('show address', function (data) {
       await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-${data.name}`, true)
 
       if (!isTouchDevice(m.name)) {
-        await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-${data.name}`, 'Approve', true, 3)
+        await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-${data.name}`, 'Approve', true, 4)
       }
 
       const resp = await reqGetAddress
