@@ -65,7 +65,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.6.0')
+      expect(resp.version).toEqual('1.6.1')
     } finally {
       await sim.close()
     }
@@ -122,7 +122,7 @@ describe.each(ADDRESS_DATA)('show address', function (data) {
       await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-${data.name}`, true)
 
       if (!isTouchDevice(m.name)) {
-        await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-${data.name}`, 'Approve', true, 4)
+        await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-${data.name}`, 'Approve', true, 3)
       }
 
       const resp = await reqGetAddress
