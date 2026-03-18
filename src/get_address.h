@@ -4,6 +4,8 @@
 
 uint8_t set_result_get_address();
 
+void prepare_bip44_path();
+
 void compute_address();
 
 void show_address_and_response();

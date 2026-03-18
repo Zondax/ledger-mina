@@ -73,12 +73,9 @@ extern char _address[MINA_ADDRESS_LEN];
         &ux_get_address_result_flow_reject_step
     );
 
-#ifndef HAVE_CRYPTO_TESTS
-    UX_STEP_TIMEOUT(
-        ux_get_address_comfort_flow_processing_step,
+    UX_STEP_NOCB(
+        ux_get_address_processing_step,
         pb,
-        1,
-        ux_get_address_result_flow,
         {
             &C_icon_processing,
             "Processing...",
@@ -86,10 +83,9 @@ extern char _address[MINA_ADDRESS_LEN];
     );
 
     UX_FLOW(
-        ux_get_address_comfort_flow,
-        &ux_get_address_comfort_flow_processing_step
+        ux_get_address_processing_flow,
+        &ux_get_address_processing_step
     );
-#endif
 
     UX_STEP_NOCB(
         ux_get_address_flow_topic_step,
@@ -113,12 +109,7 @@ extern char _address[MINA_ADDRESS_LEN];
     UX_STEP_VALID(
         ux_get_address_flow_generate_step,
         pb,
-#ifndef HAVE_CRYPTO_TESTS 
-        ux_flow_init(0, ux_get_address_comfort_flow, NULL);,
-
-#else
-        ux_flow_init(0, ux_get_address_result_flow, NULL);,
-#endif
+        { ux_flow_init(0, ux_get_address_processing_flow, NULL); compute_address(); ux_flow_init(0, ux_get_address_result_flow, NULL); },
         {
             &C_icon_validate_14,
             "Generate"
@@ -145,11 +136,11 @@ extern char _address[MINA_ADDRESS_LEN];
 #endif
 
 void show_address_and_response() {
-    compute_address();
-
     #ifdef HAVE_ON_DEVICE_UNIT_TESTS
+        compute_address();
         ux_flow_init(0, ux_get_address_unit_test_flow, NULL);
     #else
+        prepare_bip44_path();
         ux_flow_init(0, ux_get_address_flow, NULL);
     #endif
 }

@@ -64,12 +64,16 @@ uint8_t set_result_get_address()
     return tx;
 }
 
-void compute_address() {
-    _address[0] = '\0';
-
+void prepare_bip44_path() {
     strncpy(_bip44_path, "44'/12586'/", sizeof(_bip44_path));              // used 11/27 (not counting null-byte)
     value_to_string(&_bip44_path[11], sizeof(_bip44_path) - 11, _account); // at most 21/27 used (max strnlen is 10 when _account = 4294967295)
     strncat(_bip44_path, "'/0/0", 6);                                      // at least 27 - 21 = 6 bytes free (just enough)
+}
+
+void compute_address() {
+    _address[0] = '\0';
+
+    prepare_bip44_path();
 
     gen_address(_account, _address);
 }

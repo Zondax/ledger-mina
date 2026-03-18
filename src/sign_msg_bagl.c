@@ -30,6 +30,22 @@ UX_FLOW(
     &ux_sign_msg_done_flow_done_step
 );
 
+UX_STEP_TIMEOUT(
+    ux_sign_msg_processing_step,
+    pb,
+    1,
+    ux_sign_msg_done_flow,
+    {
+        &C_icon_processing,
+        "Processing...",
+    }
+);
+
+UX_FLOW(
+    ux_sign_msg_processing_flow,
+    &ux_sign_msg_processing_step
+);
+
 static poseidon_mode_t _mode;
 
 // Blind signing disabled flow
@@ -136,7 +152,7 @@ UX_STEP_VALID(
     ux_sign_msg_flow_approve_step,
     pb,
 
-    ux_flow_init(0, ux_sign_msg_done_flow, NULL);,
+    ux_flow_init(0, ux_sign_msg_processing_flow, NULL);,
     {
         &C_icon_validate_14,
         "Approve"
@@ -148,7 +164,7 @@ UX_STEP_VALID(
     ux_sign_field_flow_accept_step,
     pnn,
 
-    ux_flow_init(0, ux_sign_msg_done_flow, NULL);,
+    ux_flow_init(0, ux_sign_msg_processing_flow, NULL);,
     {
         &C_icon_validate_14,
         "ACCEPT RISK",
