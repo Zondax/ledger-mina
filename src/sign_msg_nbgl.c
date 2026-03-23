@@ -54,7 +54,7 @@ static void prepare_msg_context(void) {
     }
 
     if (_mode == POSEIDON_KIMCHI) {
-        messageContext.tagValuePair[nbPairs].item = "fullCommitment";
+        messageContext.tagValuePair[nbPairs].item = "hash";
     } else {
         messageContext.tagValuePair[nbPairs].item = "Message";
     }
@@ -103,9 +103,9 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id, poseid
         nbgl_useCaseReviewBlindSigning(TYPE_TRANSACTION | BLIND_OPERATION,
                             &messageContext.tagValueList,
                             &C_Mina_64px,
-                            "Review\nfullCommitment",
+                            "Review\nhash",
                             NULL,
-                            "Accept risk and\nsign fullCommitment?",
+                            "Accept risk and\nsign hash?",
                             NULL,
                             review_choice);
     } else {
