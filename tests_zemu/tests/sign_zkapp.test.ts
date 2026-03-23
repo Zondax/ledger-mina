@@ -56,6 +56,8 @@ describe('zkApp field element signing - blind signing disabled', function () {
 
       // Wait for the blind signing disabled screen
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+      // Wait for the processing spinner to finish as it's non-deterministic
+      await sim.waitUntilTextDisappears('Processing', 60000)
 
       if (isTouchDevice(m.name)) {
         // For touch devices: NBGL shows status screen that auto-dismisses or can be tapped
@@ -108,6 +110,8 @@ describe.each(ZKAPP_FIELD_ELEMENT_DATA)('zkApp field element signing', function 
 
       // Wait for and approve the signing prompt (includes blind signing warning)
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+      // Wait for the processing spinner to finish as it's non-deterministic
+      await sim.waitUntilTextDisappears('Processing', 60000)
       await approveBlindSigningReview(sim, m, `${m.prefix.toLowerCase()}-${data.name}`)
 
       const signatureResponse = await signatureRequest

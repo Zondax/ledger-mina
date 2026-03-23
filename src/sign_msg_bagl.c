@@ -126,7 +126,7 @@ UX_STEP_NOCB(
     {
         &C_icon_eye,
         "Sign",
-        "fullCommitment"
+        "hash"
     }
 );
 
@@ -182,12 +182,12 @@ UX_STEP_VALID(
     }
 );
 
-// Field element step (displays as "fullCommitment" instead of "Message")
+// Field element step (displays as "hash" instead of "Message")
 UX_STEP_NOCB(
     ux_sign_field_flow_field_step,
     bn_paging,
     {
-        "fullCommitment",
+        "hash",
         _msgData.msgDataBuf
     }
 );

@@ -65,7 +65,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.6.1')
+      expect(resp.version).toEqual('1.6.2')
     } finally {
       await sim.close()
     }
@@ -119,9 +119,16 @@ describe.each(ADDRESS_DATA)('show address', function (data) {
       // Navigate and approve
       await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
 
+      if (isTouchDevice(m.name)) {
+        // Wait for the processing spinner to finish as it's non-deterministic
+        await sim.waitUntilTextDisappears('Processing', 60000)
+      }
+
       await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-${data.name}`, true)
 
       if (!isTouchDevice(m.name)) {
+        // On nano, compareSnapshotsAndApprove navigates up to "Generate" which triggers
+        // a "Processing..." screen. This picks up after processing finishes.
         await sim.navigateAndCompareUntilText('.', `${m.prefix.toLowerCase()}-${data.name}`, 'Approve', true, 3)
       }
 
