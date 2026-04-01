@@ -9,6 +9,7 @@ void prepare_bip44_path();
 void compute_address();
 
 void show_address_and_response();
+void show_processing();
 
 void handle_get_address(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
                         uint8_t dataLength, volatile unsigned int *flags);

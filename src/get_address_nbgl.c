@@ -27,8 +27,12 @@ static void confirmation_callback(bool confirm) {
     }
 }
 
-void show_address_and_response() {
+void show_processing() {
     nbgl_useCaseSpinner("Processing");
+}
+
+void show_address_and_response() {
+    show_processing();
     compute_address();
 
     transactionContext.tagValuePair[0].item = "Path";
