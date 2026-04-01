@@ -1,6 +1,7 @@
 #include "get_address.h"
 #include "utils.h"
 #include "crypto.h"
+#include "menu.h"
 
 static uint32_t _account = 0;
 char     _bip44_path[27]; // max length when 44'/12586'/4294967295'/0/0
@@ -8,8 +9,10 @@ char     _address[MINA_ADDRESS_LEN];
 
 
 static void compute_address_and_response() {
+    show_processing();
     compute_address();
     sendResponse(set_result_get_address(), true);
+    ui_idle();
 }
 
 void handle_get_address(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,

@@ -106,10 +106,14 @@ extern char _address[MINA_ADDRESS_LEN];
         }
     );
 
+    void show_processing() {
+        ux_flow_init(0, ux_get_address_processing_flow, NULL);
+    }
+
     UX_STEP_VALID(
         ux_get_address_flow_generate_step,
         pb,
-        { ux_flow_init(0, ux_get_address_processing_flow, NULL); compute_address(); ux_flow_init(0, ux_get_address_result_flow, NULL); },
+        { show_processing(); compute_address(); ux_flow_init(0, ux_get_address_result_flow, NULL); },
         {
             &C_icon_validate_14,
             "Generate"
