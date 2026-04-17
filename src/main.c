@@ -48,6 +48,15 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
                 THROW(0x6E00);
             }
 
+            // Refuse any new command while a user-confirmation screen is
+            // still waiting for approval. Without this, a second APDU can
+            // race into handler state (globals, review buffers) during the
+            // asynchronous review window — exploitable on transports that
+            // do not gate new APDUs at the SDK layer (BLE).
+            if (review_pending) {
+                THROW(0x6985);
+            }
+
             // Check user supplied command data length against the actual
             // length to make sure it's not a lie!
             uint8_t dataLength = G_io_apdu_buffer[OFFSET_LC];
@@ -190,6 +199,10 @@ void app_main(void) {
                 }
                 if (e != APDU_CODE_OK) {
                     flags &= ~IO_ASYNCH_REPLY;
+                    // A handler threw before it could open its review
+                    // screen — make sure we don't leave the dispatcher
+                    // permanently locked out.
+                    review_pending = false;
                 }
                 // Unexpected exception => report
                 G_io_apdu_buffer[tx] = sw >> 8;

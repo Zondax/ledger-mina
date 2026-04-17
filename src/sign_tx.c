@@ -15,6 +15,7 @@ void handle_sign_tx(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
     UNUSED(p2);
 
     ui_sign_tx(dataBuffer, dataLength);
+    review_pending = true;
     *flags |= IO_ASYNCH_REPLY;
 }
 

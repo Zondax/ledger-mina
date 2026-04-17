@@ -34,5 +34,6 @@ void handle_test_crypto(uint8_t p1, uint8_t p2, uint8_t *dataBuffer,
     }
 
     ui_test_crypto(dataBuffer);
+    review_pending = true;
     *flags |= IO_ASYNCH_REPLY;
 }

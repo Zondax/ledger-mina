@@ -45,6 +45,7 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
     // Check blind signing for field element signing (Kimchi mode)
     if (poseidon_mode == POSEIDON_KIMCHI && !is_blindsign_enabled()) {
         ui_sign_msg_blind_disabled();
+        review_pending = true;
         *flags |= IO_ASYNCH_REPLY;
         return;
     }
@@ -52,6 +53,7 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
     memcpy(msg_buffer, dataBuffer + MSG_OFFSET, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH));
 
     ui_sign_msg(msg_buffer, dataLength - (ACCOUNT_LENGTH + NETWORK_LENGTH), network, poseidon_mode);
+    review_pending = true;
     *flags |= IO_ASYNCH_REPLY;
 }
 
