@@ -56,6 +56,11 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
             if (review_pending) {
                 THROW(0x6985);
             }
+            // An APDU is now in flight. Non-review commands release this
+            // lock when their response is emitted (sendResponse or the
+            // THROW handled in app_main's CATCH_OTHER). Review-based
+            // commands keep it until the user approves/rejects.
+            review_pending = true;
 
             // Check user supplied command data length against the actual
             // length to make sure it's not a lie!
@@ -181,6 +186,11 @@ void app_main(void) {
                 handleApdu(&flags, &tx, rx);
             }
             CATCH(EXCEPTION_IO_RESET) {
+              // Transport went away mid-review (BLE disconnect, USB
+              // replug). The deferred reply will never arrive, so drop
+              // the lock before we unwind — otherwise the dispatcher
+              // stays frozen after re-init.
+              review_pending = false;
               THROW(EXCEPTION_IO_RESET);
             }
             CATCH_OTHER(e) {
@@ -199,11 +209,12 @@ void app_main(void) {
                 }
                 if (e != APDU_CODE_OK) {
                     flags &= ~IO_ASYNCH_REPLY;
-                    // A handler threw before it could open its review
-                    // screen — make sure we don't leave the dispatcher
-                    // permanently locked out.
-                    review_pending = false;
                 }
+                // Any THROW exits the APDU — whether a success code
+                // (e.g. GET_CONF) or an error. Handlers that genuinely
+                // own a review return normally and keep the lock; we
+                // only reach here when the APDU is done.
+                review_pending = false;
                 // Unexpected exception => report
                 G_io_apdu_buffer[tx] = sw >> 8;
                 G_io_apdu_buffer[tx + 1] = sw;
