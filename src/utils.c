@@ -278,6 +278,9 @@ static const char HEX_CHARS[] = "0123456789abcdef";
 
 void bytes_to_hex_display(char *out, size_t out_len, const uint8_t *in, size_t in_len)
 {
+    if (out == NULL || in == NULL || out_len == 0) {
+        return;
+    }
     // Convert bytes to hex string, reversing byte order for big-endian display
     for (size_t i = 0; i < in_len && (i * 2 + 1) < out_len; i++) {
         uint8_t byte = in[in_len - 1 - i];  // Reverse for big-endian display
