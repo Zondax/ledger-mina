@@ -5,6 +5,16 @@
 #define PRODUCTION_BUILD 0
 #endif
 
+static char blindsign_text[20];
+
+static void update_blindsign_text(void) {
+    if (is_blindsign_enabled()) {
+        strcpy(blindsign_text, "Enabled");
+    } else {
+        strcpy(blindsign_text, "Disabled");
+    }
+}
+
 #ifdef HAVE_ON_DEVICE_UNIT_TESTS
 UX_STEP_NOCB(
     ux_idle_flow_1_step,
@@ -54,6 +64,15 @@ UX_STEP_NOCB(
       "Copyright",
       "(c) 2024 Ledger",
     });
+UX_STEP_CB_INIT(
+    ux_idle_flow_blindsign_step,
+    bn,
+    update_blindsign_text(),
+    toggle_blindsign(); ui_idle();,
+    {
+      "Blind signing",
+      blindsign_text,
+    });
 UX_STEP_VALID(
     ux_idle_flow_5_step,
     pb,
@@ -68,6 +87,7 @@ UX_FLOW(ux_idle_flow,
   &ux_idle_flow_2_step,
   &ux_idle_flow_3_step,
   &ux_idle_flow_4_step,
+  &ux_idle_flow_blindsign_step,
   &ux_idle_flow_5_step,
   FLOW_LOOP
 );

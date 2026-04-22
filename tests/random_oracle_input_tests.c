@@ -88,7 +88,7 @@ int main()
             0x20, 0xf4, 0x00, 0x00
         };
         uint8_t this_derive_msg[268] = { 0 };
-        size_t derive_msg_len = roinput_derive_message(this_derive_msg, sizeof(this_derive_msg), &kp, &input, TESTNET_ID);
+        size_t derive_msg_len = roinput_derive_message(this_derive_msg, sizeof(this_derive_msg), &kp, &input, TESTNET_ID, POSEIDON_LEGACY);
         assert(derive_msg_len == 268);
         assert(memcmp(this_derive_msg, target_derive_msg, sizeof(target_derive_msg)) == 0);
 
@@ -237,7 +237,7 @@ int main()
             0x20, 0xf4, 0x02, 0x00
         };
         uint8_t this_derive_msg[268] = { 0 };
-        size_t derive_msg_len = roinput_derive_message(this_derive_msg, sizeof(this_derive_msg), &kp, &input, MAINNET_ID);
+        size_t derive_msg_len = roinput_derive_message(this_derive_msg, sizeof(this_derive_msg), &kp, &input, MAINNET_ID, POSEIDON_LEGACY);
         assert(derive_msg_len == 268);
         assert(memcmp(this_derive_msg, target_derive_msg, sizeof(target_derive_msg)) == 0);
 

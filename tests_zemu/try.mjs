@@ -11,12 +11,8 @@ async function showAddress(app) {
     const resp = await app.getAppName()
     console.log(resp)
 
-    let reqGetAddress = app.getAddress(ACCOUNT, false)
+    let reqGetAddress = app.getAddress(ACCOUNT, true)
     let pubkey = await reqGetAddress
-    console.log(pubkey)
-
-    reqGetAddress = app.getAddress(ACCOUNT, true)
-    pubkey = await reqGetAddress
     console.log(pubkey)
   } catch (e) {
     console.log(e)

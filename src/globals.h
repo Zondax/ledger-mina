@@ -3,6 +3,7 @@
 #include <os.h>
 #include <ux.h>
 #include <os_io_seproxyhal.h>
+#include <stdbool.h>
 
 #define P1_FIRST 0x00
 #define P1_MORE 0x80
@@ -15,10 +16,17 @@ extern unsigned int ux_step_count;
 
 typedef struct internalStorage_t {
     uint8_t initialized;
+    uint8_t blindsign_enabled;  // 0x00 = disabled (default), 0x01 = enabled
 } internalStorage_t;
 
 extern const internalStorage_t N_storage_real;
 #define N_storage (*(volatile internalStorage_t*) PIC(&N_storage_real))
+
+// True while a user-confirmation UI flow is open and the device has
+// deferred its APDU reply with IO_ASYNCH_REPLY. Any new APDU arriving
+// in this state must be rejected so the host cannot mutate the bytes
+// being reviewed.
+extern bool review_pending;
 
 void sendResponse(uint8_t tx, bool approve);
 

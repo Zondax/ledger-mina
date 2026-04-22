@@ -58,6 +58,12 @@ typedef struct keypair_t {
 
 typedef struct roinput_t ROInput; // Forward declaration
 
+// Forward declaration for poseidon mode
+typedef enum {
+    POSEIDON_LEGACY,
+    POSEIDON_KIMCHI
+} poseidon_mode_t;
+
 void field_copy(Field b, const Field a);
 void field_add(Field c, const Field a, const Field b);
 void field_mul(Field c, const Field a, const Field b);
@@ -81,4 +87,4 @@ void generate_pubkey(Affine *pub_key, const Scalar priv_key);
 bool generate_address(char *address, const size_t len, const Affine *pub_key);
 bool validate_address(const char *address);
 
-bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t network_id);
+bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t network_id, poseidon_mode_t mode);

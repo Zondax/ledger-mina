@@ -25,3 +25,5 @@ void packed_bit_array_set(uint8_t *bits, const size_t i, const bool b);
 bool packed_bit_array_get(const uint8_t *bits, const size_t i);
 
 void read_public_key_compressed(Compressed* out, const char *pubkeyBase58);
+
+void bytes_to_hex_display(char *out, size_t out_len, const uint8_t *in, size_t in_len);

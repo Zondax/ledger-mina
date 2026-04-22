@@ -15,14 +15,31 @@
 
 #pragma once
 
-#include "crypto.h"
+#include <stdint.h>
+#include <stddef.h>
 
-#define ROUNDS 64
-#define FULL_ROUNDS 63
+// Forward declarations - these are defined in crypto.h
+
+// Legacy constants
+#define ROUNDS_LEGACY 64
+#define FULL_ROUNDS_LEGACY 63
+
+// Kimchi constants
+#define ROUNDS_KIMCHI 55
+#define FULL_ROUNDS_KIMCHI 55
+
+// Compatibility defines for legacy code
+#define ROUNDS ROUNDS_LEGACY
+#define FULL_ROUNDS FULL_ROUNDS_LEGACY
+
 #define SPONGE_SIZE 3
+
+// poseidon_mode_t is defined in crypto.h
+
+// Types are defined in crypto.h - no need to redeclare them
 
 typedef Field State[SPONGE_SIZE];
 
-void poseidon_init(State s, const uint8_t network_id);
-void poseidon_update(State s, const Scalar *input, const size_t len);
+bool poseidon_init(State s, const uint8_t network_id, poseidon_mode_t mode);
+void poseidon_update(State s, const Scalar *input, const size_t len, poseidon_mode_t mode);
 void poseidon_digest(Scalar out, const State s);
