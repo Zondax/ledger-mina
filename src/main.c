@@ -123,6 +123,7 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
             THROW(EXCEPTION_IO_RESET);
         }
         CATCH_OTHER(e) {
+        review_pending = false;
         switch (e & 0xF000) {
             case 0x6000:
                 sw = e;
