@@ -65,7 +65,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.6.5')
+      expect(resp.version).toEqual('1.6.6')
     } finally {
       await sim.close()
     }
@@ -152,11 +152,11 @@ describe('Dispatcher lock', function () {
 
       const first = await app.getAppVersion()
       expect(first.returnCode).toEqual('9000')
-      expect(first.version).toEqual('1.6.5')
+      expect(first.version).toEqual('1.6.6')
 
       const second = await app.getAppVersion()
       expect(second.returnCode).toEqual('9000')
-      expect(second.version).toEqual('1.6.5')
+      expect(second.version).toEqual('1.6.6')
     } finally {
       await sim.close()
     }
@@ -171,7 +171,7 @@ describe('Dispatcher lock', function () {
 
       const versionResp = await app.getAppVersion()
       expect(versionResp.returnCode).toEqual('9000')
-      expect(versionResp.version).toEqual('1.6.5')
+      expect(versionResp.version).toEqual('1.6.6')
 
       const addrResp = await app.getAddress(ADDRESS_DATA[0].account, false)
       expect(addrResp.returnCode).toEqual('9000')
@@ -194,7 +194,7 @@ describe('Dispatcher lock', function () {
 
       const versionResp = await app.getAppVersion()
       expect(versionResp.returnCode).toEqual('9000')
-      expect(versionResp.version).toEqual('1.6.5')
+      expect(versionResp.version).toEqual('1.6.6')
     } finally {
       await sim.close()
     }
@@ -210,14 +210,14 @@ describe('Dispatcher lock', function () {
 
       const first = await app.getAppVersion()
       expect(first.returnCode).toEqual('9000')
-      expect(first.version).toEqual('1.6.5')
+      expect(first.version).toEqual('1.6.6')
 
       const middleSw = await captureSw(transport.send(0xe0, 0xff, 0, 0, Buffer.alloc(0)))
       expect(middleSw).toEqual(0x6d00)
 
       const third = await app.getAppVersion()
       expect(third.returnCode).toEqual('9000')
-      expect(third.version).toEqual('1.6.5')
+      expect(third.version).toEqual('1.6.6')
     } finally {
       await sim.close()
     }
