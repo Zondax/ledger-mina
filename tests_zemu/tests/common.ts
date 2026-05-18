@@ -25,4 +25,5 @@ export const defaultOptions = {
   logging: true,
   custom: `-s "${APP_SEED}"`,
   X11: false,
+  startTimeout: 150_000,
 }
