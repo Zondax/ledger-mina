@@ -65,7 +65,7 @@ describe('Standard', function () {
       const resp = await app.getAppVersion()
       console.log(resp)
 
-      expect(resp.version).toEqual('1.6.5')
+      expect(resp.version).toEqual('1.6.6')
     } finally {
       await sim.close()
     }
@@ -141,6 +141,99 @@ describe.each(ADDRESS_DATA)('show address', function (data) {
     })
   })
 })
+
+describe('Dispatcher lock', function () {
+  test.concurrent.each(models)('two non-review APDUs on one session both succeed', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      const options = setTextOptionsStandardTests(m)
+      await sim.start({ ...options, model: m.name })
+      const app = new MinaApp(sim.getTransport())
+
+      const first = await app.getAppVersion()
+      expect(first.returnCode).toEqual('9000')
+      expect(first.version).toEqual('1.6.6')
+
+      const second = await app.getAppVersion()
+      expect(second.returnCode).toEqual('9000')
+      expect(second.version).toEqual('1.6.6')
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.concurrent.each(models)('GET_CONF then non-confirm GET_ADDR both succeed', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      const options = setTextOptionsStandardTests(m)
+      await sim.start({ ...options, model: m.name })
+      const app = new MinaApp(sim.getTransport())
+
+      const versionResp = await app.getAppVersion()
+      expect(versionResp.returnCode).toEqual('9000')
+      expect(versionResp.version).toEqual('1.6.6')
+
+      const addrResp = await app.getAddress(ADDRESS_DATA[0].account, false)
+      expect(addrResp.returnCode).toEqual('9000')
+      expect(addrResp.publicKey).toEqual(ADDRESS_DATA[0].expectedAddress)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.concurrent.each(models)('unknown INS then GET_CONF — error path releases the lock', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      const options = setTextOptionsStandardTests(m)
+      await sim.start({ ...options, model: m.name })
+      const transport = sim.getTransport()
+      const app = new MinaApp(transport)
+
+      const firstSw = await captureSw(transport.send(0xe0, 0xff, 0, 0, Buffer.alloc(0)))
+      expect(firstSw).toEqual(0x6d00)
+
+      const versionResp = await app.getAppVersion()
+      expect(versionResp.returnCode).toEqual('9000')
+      expect(versionResp.version).toEqual('1.6.6')
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.concurrent.each(models)('GET_CONF, unknown INS, GET_CONF — error in the middle of a chain', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      const options = setTextOptionsStandardTests(m)
+      await sim.start({ ...options, model: m.name })
+      const transport = sim.getTransport()
+      const app = new MinaApp(transport)
+
+      const first = await app.getAppVersion()
+      expect(first.returnCode).toEqual('9000')
+      expect(first.version).toEqual('1.6.6')
+
+      const middleSw = await captureSw(transport.send(0xe0, 0xff, 0, 0, Buffer.alloc(0)))
+      expect(middleSw).toEqual(0x6d00)
+
+      const third = await app.getAppVersion()
+      expect(third.returnCode).toEqual('9000')
+      expect(third.version).toEqual('1.6.6')
+    } finally {
+      await sim.close()
+    }
+  })
+})
+
+async function captureSw(p: Promise<Buffer>): Promise<number> {
+  try {
+    const buf = await p
+    return (buf[buf.length - 2] << 8) | buf[buf.length - 1]
+  } catch (e: unknown) {
+    const sw = (e as { statusCode?: number }).statusCode
+    if (typeof sw !== 'number') throw e
+    return sw
+  }
+}
 
 function setTextOptionsStandardTests(m: IDeviceModel) {
   const options = { ...defaultOptions }
