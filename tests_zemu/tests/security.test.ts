@@ -160,3 +160,38 @@ describe('Delegation amount', function () {
   )
 })
 
+describe('Message signing', function () {
+  test.concurrent.each(models)('rejects an embedded NUL before the review ($name)', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      setTextOptions(m)
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new MinaApp(sim.getTransport())
+
+      // The review screen renders the message as a C string, so the user would
+      // approve what is visible while the signature covered the hidden tail.
+      const message = 'visible' + String.fromCharCode(0) + 'hidden'
+
+      const { returnCode } = await app.signMessage(0, 0, message)
+      await expectRefusedWithoutReview(sim, returnCode)
+    } finally {
+      await sim.close()
+    }
+  })
+
+  test.concurrent.each(models)('rejects a control character before the review ($name)', async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      setTextOptions(m)
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new MinaApp(sim.getTransport())
+
+      const message = 'bell' + String.fromCharCode(7) + 'here'
+
+      const { returnCode } = await app.signMessage(0, 0, message)
+      await expectRefusedWithoutReview(sim, returnCode)
+    } finally {
+      await sim.close()
+    }
+  })
+})
