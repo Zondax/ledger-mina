@@ -536,7 +536,7 @@ void generate_pubkey(Affine *pub_key, const Scalar priv_key)
     affine_scalar_mul(pub_key, priv_key, &AFFINE_ONE);
 }
 
-void generate_keypair(Keypair *keypair, const uint32_t account)
+bool generate_keypair(Keypair *keypair, const uint32_t account)
 {
     // Only the public key is cached.  Caching the derived scalar too would
     // leave it resident in static memory for the whole app lifetime and undo
@@ -554,19 +554,22 @@ void generate_keypair(Keypair *keypair, const uint32_t account)
     };
 
     unsigned char raw_privkey[64] = {0};
-    
+
     // Generate private key
     if (CX_OK != os_derive_bip32_no_throw(CX_CURVE_256K1, bip32_path, BIP32_PATH_LEN, raw_privkey, NULL)) {
-        // Clear sensitive data from the stack
+        // Clear sensitive data from the stack.  The caller's keypair is wiped
+        // as well: leaving it untouched hands back uninitialised stack that
+        // reads as a valid key.
         explicit_bzero(raw_privkey, sizeof(raw_privkey));
-        return;
+        explicit_bzero(keypair, sizeof(Keypair));
+        return false;
     }
-    
+
     memmove(keypair->priv, raw_privkey, SCALAR_BYTES);
-    
+
     // Clear sensitive data from the stack
     explicit_bzero(raw_privkey, sizeof(raw_privkey));
-    
+
     scalar_from_bytes(keypair->priv);
 
     // Checking cached_pub is not NULL is a workaround for the linker.
@@ -582,7 +585,7 @@ void generate_keypair(Keypair *keypair, const uint32_t account)
     last_account = account;
     memcpy(&cached_pub, &keypair->pub, sizeof(Affine));
 
-    return;
+    return true;
 }
 
 bool generate_address(char *address, const size_t len, const Affine *pub_key)

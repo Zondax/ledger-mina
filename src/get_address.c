@@ -43,7 +43,9 @@ void gen_address(uint32_t account, char* address)
     BEGIN_TRY {
         Keypair kp;
         TRY {
-            generate_keypair(&kp, account);
+            if (!generate_keypair(&kp, account)) {
+                THROW(INVALID_PARAMETER);
+            }
             if (!generate_address(address, MINA_ADDRESS_LEN, &kp.pub)) {
                 THROW(INVALID_PARAMETER);
             }

@@ -110,7 +110,9 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
         }
     }
 
-    generate_keypair(&kp, account);
+    if (!generate_keypair(&kp, account)) {
+        THROW(INVALID_PARAMETER);
+    }
 
     BEGIN_TRY {
         TRY {
