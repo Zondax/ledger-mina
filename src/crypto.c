@@ -538,7 +538,10 @@ void generate_pubkey(Affine *pub_key, const Scalar priv_key)
 
 void generate_keypair(Keypair *keypair, const uint32_t account)
 {
-    static Keypair cached_keypair;
+    // Only the public key is cached.  Caching the derived scalar too would
+    // leave it resident in static memory for the whole app lifetime and undo
+    // the explicit_bzero every caller performs on its stack copy.
+    static Affine cached_pub;
     static uint32_t last_account;
     Affine aff_zero = { .x = { 0 }, .y = { 0 } };
 
@@ -566,18 +569,18 @@ void generate_keypair(Keypair *keypair, const uint32_t account)
     
     scalar_from_bytes(keypair->priv);
 
-    // Checking cached_keypair.pub is not NULL is a workaround for the linker.
+    // Checking cached_pub is not NULL is a workaround for the linker.
     // Current linker script does not allow .data section to be non-empty (last_account can't be initialized).
-    if (account == last_account && memcmp(&cached_keypair.pub, &aff_zero, sizeof(Affine)) != 0) {
-        // Private key can't be cached for security reasons, so it is always computed (deterministically)
-        memcpy(&keypair->pub, &cached_keypair.pub, sizeof(Affine));
+    if (account == last_account && memcmp(&cached_pub, &aff_zero, sizeof(Affine)) != 0) {
+        // The private key is never cached, so it is always recomputed (deterministically)
+        memcpy(&keypair->pub, &cached_pub, sizeof(Affine));
     } else {
         // Generate public key
         generate_pubkey(&keypair->pub, keypair->priv);
     }
 
     last_account = account;
-    memcpy(&cached_keypair, keypair, sizeof(Keypair));
+    memcpy(&cached_pub, &keypair->pub, sizeof(Affine));
 
     return;
 }
