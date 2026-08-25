@@ -15,6 +15,10 @@ const SW_INVALID_PARAMETER = '26626'
 // A payment the suite already has a recorded signature for.
 const PAYMENT = TX_DATA.find(tx => tx.name === 'test_sign_tx_0')!
 
+// A delegation the suite already has a recorded signature for. Its amount is
+// zero, and zero is what the device has to commit to whatever the host sends.
+const DELEGATION = TX_DATA.find(tx => tx.name === 'test_sign_tx_0_1')!
+
 // Re-encode an address after mutating its decoded bytes so the checksum stays
 // valid. This is what the device has to catch on its own: a correct base58check
 // checksum says nothing about whether the version bytes are the ones Mina uses,
@@ -121,5 +125,38 @@ describe('Address validation', function () {
       await sim.close()
     }
   })
+})
+
+describe('Delegation amount', function () {
+  test.concurrent.each(models)(
+    'is not committed to when the host supplies one ($name)',
+    async function (m) {
+      const sim = new Zemu(m.path)
+      try {
+        setTextOptions(m)
+        await sim.start({ ...defaultOptions, model: m.name })
+        const app = new MinaApp(sim.getTransport())
+
+        // Same delegation as test_sign_tx_0_1, except the host fills the amount
+        // field with a value the BAGL review flow never puts on screen.
+        const signatureRequest = app.signTransaction({
+          ...DELEGATION.txParams,
+          amount: 1234567890,
+        })
+
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+        await sim.compareSnapshotsAndApprove('.', `${m.prefix.toLowerCase()}-sec_delegation_hidden_amount`, true)
+
+        const signatureResponse = await signatureRequest
+
+        // Identical to the signature recorded for the same delegation with a
+        // zero amount: the hidden bytes never reached the signed hash.
+        expect(signatureResponse.returnCode).toEqual('9000')
+        expect(signatureResponse.signature).toEqual(DELEGATION.signature)
+      } finally {
+        await sim.close()
+      }
+    },
+  )
 })
 

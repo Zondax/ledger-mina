@@ -9,6 +9,16 @@ bool parse_tx(const uint8_t *dataBuffer, uint8_t dataLength, tx_t *tx, ui_t *ui)
         return false;
     }
 
+    // 170: tag. Read up front because the transaction type decides which of
+    // the fields below the device is willing to commit to.
+    tx->tag = *(dataBuffer + 170);
+    if (tx->tag != PAYMENT_TX && tx->tag != DELEGATION_TX) {
+        return false;
+    }
+    tx->tx.tag[0] = tx->tag & 0x01;
+    tx->tx.tag[1] = tx->tag & 0x02;
+    tx->tx.tag[2] = tx->tag & 0x04;
+
     // 0-3: from_bip44_account
     tx->account = read_uint32_be(dataBuffer);
 
@@ -37,8 +47,10 @@ bool parse_tx(const uint8_t *dataBuffer, uint8_t dataLength, tx_t *tx, ui_t *ui)
         return false;
     }
 
-    // 114-121: amount
-    tx->tx.amount = read_uint64_be(dataBuffer + 114);
+    // 114-121: amount. A delegation has no amount: the BAGL review flow shows
+    // no Amount screen for it, so the bytes the host puts here would be signed
+    // without ever being displayed. Pin them to zero instead.
+    tx->tx.amount = (tx->tag == DELEGATION_TX) ? 0 : read_uint64_be(dataBuffer + 114);
     amount_to_string(ui->amount, sizeof(ui->amount), tx->tx.amount);
 
     // Set to 1 until token support is released
@@ -73,15 +85,6 @@ bool parse_tx(const uint8_t *dataBuffer, uint8_t dataLength, tx_t *tx, ui_t *ui)
     memcpy(ui->memo, dataBuffer + 138, sizeof(ui->memo) - 1);
     ui->memo[sizeof(ui->memo) - 1] = '\0';
     transaction_prepare_memo(tx->tx.memo, ui->memo);
-
-    // 170: tag
-    tx->tag = *(dataBuffer + 170);
-    if (tx->tag != PAYMENT_TX && tx->tag != DELEGATION_TX) {
-        return false;
-    }
-    tx->tx.tag[0] = tx->tag & 0x01;
-    tx->tx.tag[1] = tx->tag & 0x02;
-    tx->tx.tag[2] = tx->tag & 0x04;
 
     // 171: network_id
     tx->network_id = *(dataBuffer + 171);
