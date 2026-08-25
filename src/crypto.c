@@ -635,20 +635,37 @@ bool generate_address(char *address, const size_t len, const Affine *pub_key)
 
 bool validate_address(const char *address)
 {
-    uint8_t bytes[40];
-    size_t bytes_len = sizeof(bytes);
+    uint8_t bytes[40] = {0};
+
+    if (address == NULL) {
+        return false;
+    }
 
     if (strnlen(address, MINA_ADDRESS_LEN) != MINA_ADDRESS_LEN - 1) {
         return false;
     }
 
-    b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, bytes_len);
+    // A failed or short decode used to leave the tail of `bytes` uninitialised
+    // and the checksum was then compared against whatever the stack held.
+    if (b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, sizeof(bytes)) != (int)sizeof(bytes)) {
+        return false;
+    }
 
     struct bytes {
         uint8_t version;
         uint8_t payload[35];
         uint8_t checksum[4];
     } *raw = (struct bytes *)bytes;
+
+    // Reject anything the network would reject.  A base58 string can carry a
+    // valid checksum over the wrong version bytes, and accepting it would let
+    // the device sign for a key it decoded differently than Mina does.
+    if (raw->version != 0xcb ||        // base58check version
+        raw->payload[0] != 0x01 ||     // non_zero_curve_point version
+        raw->payload[1] != 0x01 ||     // compressed_poly version
+        raw->payload[34] > 0x01) {     // y-coordinate parity is a bool
+        return false;
+    }
 
     uint8_t hash1[CX_SHA256_SIZE];
     cx_hash_sha256((const unsigned char *)raw, 36, hash1, sizeof(hash1));

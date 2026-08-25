@@ -18,10 +18,14 @@ bool parse_tx(const uint8_t *dataBuffer, uint8_t dataLength, tx_t *tx, ui_t *ui)
     if (!validate_address(ui->from)) {
         return false;
     }
-    read_public_key_compressed(&tx->tx.source_pk, ui->from);
+    if (!read_public_key_compressed(&tx->tx.source_pk, ui->from)) {
+        return false;
+    }
 
     // Always the same as from for sent-payment and delegate txs
-    read_public_key_compressed(&tx->tx.fee_payer_pk, ui->from);
+    if (!read_public_key_compressed(&tx->tx.fee_payer_pk, ui->from)) {
+        return false;
+    }
 
     // 59-113: to
     memcpy(ui->to, dataBuffer + 59, MINA_ADDRESS_LEN - 1);
@@ -29,7 +33,9 @@ bool parse_tx(const uint8_t *dataBuffer, uint8_t dataLength, tx_t *tx, ui_t *ui)
     if (!validate_address(ui->to)) {
         return false;
     }
-    read_public_key_compressed(&tx->tx.receiver_pk, ui->to);
+    if (!read_public_key_compressed(&tx->tx.receiver_pk, ui->to)) {
+        return false;
+    }
 
     // 114-121: amount
     tx->tx.amount = read_uint64_be(dataBuffer + 114);
