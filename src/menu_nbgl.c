@@ -60,7 +60,7 @@ void ui_idle(void) {
     init_settings();
 #ifdef HAVE_ON_DEVICE_UNIT_TESTS
     nbgl_useCaseHomeAndSettings("Mina unit tests",
-                                &C_Mina_64px,
+                                &MINA_APP_GLYPH,
                                 NULL,
                                 INIT_HOME_PAGE,
                                 &settingsContents,
@@ -69,7 +69,7 @@ void ui_idle(void) {
                                 app_quit);
 #elif (PRODUCTION_BUILD == 0)
     nbgl_useCaseHomeAndSettings("Mina DEMO",
-                                &C_Mina_64px,
+                                &MINA_APP_GLYPH,
                                 "DO NOT USE",
                                 INIT_HOME_PAGE,
                                 &settingsContents,
@@ -78,7 +78,7 @@ void ui_idle(void) {
                                 app_quit);
 #else
     nbgl_useCaseHomeAndSettings(APPNAME,
-                                &C_Mina_64px,
+                                &MINA_APP_GLYPH,
                                 NULL,
                                 INIT_HOME_PAGE,
                                 &settingsContents,
