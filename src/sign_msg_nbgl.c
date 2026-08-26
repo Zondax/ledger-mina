@@ -102,7 +102,7 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id, poseid
         // Field element signing with blind signing warning
         nbgl_useCaseReviewBlindSigning(TYPE_TRANSACTION | BLIND_OPERATION,
                             &messageContext.tagValueList,
-                            &C_Mina_64px,
+                            &MINA_APP_GLYPH,
                             "Review\nhash",
                             NULL,
                             "Accept risk and\nsign hash?",
@@ -112,7 +112,7 @@ void ui_sign_msg(uint8_t *dataBuffer, uint8_t dataLength, uint8_t net_id, poseid
         // Legacy message signing
         nbgl_useCaseReview(TYPE_TRANSACTION,
                             &messageContext.tagValueList,
-                            &C_Mina_64px,
+                            &MINA_APP_GLYPH,
                             "Review message",
                             NULL,
                             "Sign message",

@@ -42,6 +42,19 @@ void handle_sign_msg(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint8_t dataLe
         THROW(INVALID_PARAMETER);
     }
 
+    // Reject unprintable content before it reaches the display. The review
+    // screen renders the message as a C string, so an embedded NUL would show
+    // the user less than the approval covers. sign_message re-checks, but by
+    // then the user has already pressed Approve.
+    if (poseidon_mode == POSEIDON_LEGACY) {
+        for (uint8_t i = MSG_OFFSET; i < dataLength; i++) {
+            const uint8_t digit = dataBuffer[i];
+            if (digit != '\r' && digit != '\n' && !IS_PRINTABLE(digit)) {
+                THROW(INVALID_PARAMETER);
+            }
+        }
+    }
+
     // Check blind signing for field element signing (Kimchi mode)
     if (poseidon_mode == POSEIDON_KIMCHI && !is_blindsign_enabled()) {
         ui_sign_msg_blind_disabled();
@@ -110,7 +123,9 @@ void sign_message(uint8_t *dataBuffer, uint8_t dataLength)
         }
     }
 
-    generate_keypair(&kp, account);
+    if (!generate_keypair(&kp, account)) {
+        THROW(INVALID_PARAMETER);
+    }
 
     BEGIN_TRY {
         TRY {

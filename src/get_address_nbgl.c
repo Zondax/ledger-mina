@@ -46,7 +46,7 @@ void show_address_and_response() {
     #else
         nbgl_useCaseAddressReview(_address,
                                   &transactionContext.tagValueList,
-                                  &C_Mina_64px,
+                                  &MINA_APP_GLYPH,
                                   "Verify Mina address",
                                   NULL,
                                   confirmation_callback);

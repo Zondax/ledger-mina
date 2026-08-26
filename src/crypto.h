@@ -82,7 +82,7 @@ void affine_negate(Affine *q, const Affine *p);
 bool affine_eq(const Affine *p, const Affine *q);
 bool affine_is_on_curve(const Affine *p);
 
-void generate_keypair(Keypair *keypair, uint32_t account);
+bool generate_keypair(Keypair *keypair, uint32_t account);
 void generate_pubkey(Affine *pub_key, const Scalar priv_key);
 bool generate_address(char *address, const size_t len, const Affine *pub_key);
 bool validate_address(const char *address);
