@@ -538,6 +538,9 @@ void generate_pubkey(Affine *pub_key, const Scalar priv_key)
 
 bool generate_keypair(Keypair *keypair, const uint32_t account)
 {
+    // Only the public key is cached.  Caching the derived scalar too would
+    // leave it resident in static memory for the whole app lifetime and undo
+    // the explicit_bzero every caller performs on its stack copy.
     static Affine cached_pub;
     static uint32_t last_account;
     Affine aff_zero = { .x = { 0 }, .y = { 0 } };
@@ -552,19 +555,27 @@ bool generate_keypair(Keypair *keypair, const uint32_t account)
 
     unsigned char raw_privkey[64] = {0};
 
+    // Generate private key
     if (CX_OK != os_derive_bip32_no_throw(CX_CURVE_256K1, bip32_path, BIP32_PATH_LEN, raw_privkey, NULL)) {
+        // Clear sensitive data from the stack.  The caller's keypair is wiped
+        // as well: leaving it untouched hands back uninitialised stack that
+        // reads as a valid key.
         explicit_bzero(raw_privkey, sizeof(raw_privkey));
-        explicit_bzero(keypair, sizeof(*keypair));
+        explicit_bzero(keypair, sizeof(Keypair));
         return false;
     }
 
     memmove(keypair->priv, raw_privkey, SCALAR_BYTES);
+
+    // Clear sensitive data from the stack
     explicit_bzero(raw_privkey, sizeof(raw_privkey));
+
     scalar_from_bytes(keypair->priv);
 
-    // Checking cached_pub is not zero is a workaround for the linker.
+    // Checking cached_pub is not NULL is a workaround for the linker.
     // Current linker script does not allow .data section to be non-empty (last_account can't be initialized).
     if (account == last_account && memcmp(&cached_pub, &aff_zero, sizeof(Affine)) != 0) {
+        // The private key is never cached, so it is always recomputed (deterministically)
         memcpy(&keypair->pub, &cached_pub, sizeof(Affine));
     } else {
         generate_pubkey(&keypair->pub, keypair->priv);
@@ -623,20 +634,37 @@ bool generate_address(char *address, const size_t len, const Affine *pub_key)
 
 bool validate_address(const char *address)
 {
-    uint8_t bytes[40];
-    size_t bytes_len = sizeof(bytes);
+    uint8_t bytes[40] = {0};
+
+    if (address == NULL) {
+        return false;
+    }
 
     if (strnlen(address, MINA_ADDRESS_LEN) != MINA_ADDRESS_LEN - 1) {
         return false;
     }
 
-    b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, bytes_len);
+    // A failed or short decode used to leave the tail of `bytes` uninitialised
+    // and the checksum was then compared against whatever the stack held.
+    if (b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, sizeof(bytes)) != (int)sizeof(bytes)) {
+        return false;
+    }
 
     struct bytes {
         uint8_t version;
         uint8_t payload[35];
         uint8_t checksum[4];
     } *raw = (struct bytes *)bytes;
+
+    // Reject anything the network would reject.  A base58 string can carry a
+    // valid checksum over the wrong version bytes, and accepting it would let
+    // the device sign for a key it decoded differently than Mina does.
+    if (raw->version != 0xcb ||        // base58check version
+        raw->payload[0] != 0x01 ||     // non_zero_curve_point version
+        raw->payload[1] != 0x01 ||     // compressed_poly version
+        raw->payload[34] > 0x01) {     // y-coordinate parity is a bool
+        return false;
+    }
 
     uint8_t hash1[CX_SHA256_SIZE];
     cx_hash_sha256((const unsigned char *)raw, 36, hash1, sizeof(hash1));

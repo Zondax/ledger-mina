@@ -142,7 +142,7 @@ void ui_sign_tx(uint8_t *dataBuffer, uint8_t dataLength)
         // Start review
         nbgl_useCaseReview(TYPE_TRANSACTION,
                            &transactionContext.tagValueList,
-                           &C_Mina_64px,
+                           &MINA_APP_GLYPH,
                            "Review transaction",
                            NULL,
                            "Sign transaction",
