@@ -30,7 +30,9 @@ void sign_transaction(tx_t* tx, ui_t* ui)
         TRY {
             // Get the account's private key and validate corresponding
             // public key matches the from address
-            generate_keypair(&kp, tx->account);
+            if (!generate_keypair(&kp, tx->account)) {
+                THROW(INVALID_PARAMETER);
+            }
             if (!generate_address(address, sizeof(address), &kp.pub)) {
                 THROW(INVALID_PARAMETER);
             }

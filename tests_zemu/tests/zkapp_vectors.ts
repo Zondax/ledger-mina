@@ -37,3 +37,17 @@ export const ZKAPP_FIELD_ELEMENT_DATA = [
 
 export const ZKAPP_PRIVATE_KEY = 'EKDt66ubGg5SDiwcQABWfFZaruq6idcyrLLfyZQjoH4CN3PHEiNj'
 export const ZKAPP_PUBLIC_KEY = 'B62qnzbXmRNo9q32n4SNu2mpB8e7FYYLH8NmaX6oFCBYjjQ8SbD7uzV'
+
+// Base field (Fp) modulus. A canonical Mina field element is in [0, p),
+// i.e. strictly less than this value.
+export const FIELD_MODULUS =
+  28948022309329048855892746252171976963363056481941560715954676764349967630337n
+
+// Non-canonical field elements (value >= p) that the app must reject.
+export const OUT_OF_RANGE_FIELD_DATA = [
+  { name: 'field_equals_modulus', account: 0, networkId: 0, field: FIELD_MODULUS },
+  { name: 'field_modulus_plus_one', account: 0, networkId: 0, field: FIELD_MODULUS + 1n },
+  { name: 'field_all_ones', account: 0, networkId: 0, field: (1n << 256n) - 1n },
+  // Differs from the canonical value 5 only in bit 255.
+  { name: 'field_bit255_twin_of_5', account: 0, networkId: 0, field: (1n << 255n) + 5n },
+]

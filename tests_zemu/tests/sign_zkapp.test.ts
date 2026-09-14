@@ -1,7 +1,7 @@
 import Zemu, { ButtonKind, DEFAULT_START_OPTIONS, IDeviceModel, isTouchDevice, TouchNavigation } from "@zondax/zemu"
 import { defaultOptions, models } from "./common"
 import { MinaApp } from "@zondax/ledger-mina-js"
-import { ZKAPP_FIELD_ELEMENT_DATA, ZKAPP_PUBLIC_KEY, commitmentToBytes } from "./zkapp_vectors"
+import { ZKAPP_FIELD_ELEMENT_DATA, ZKAPP_PUBLIC_KEY, commitmentToBytes, OUT_OF_RANGE_FIELD_DATA } from "./zkapp_vectors"
 import { Signature } from 'o1js'
 
 jest.setTimeout(90000)
@@ -132,6 +132,42 @@ describe.each(ZKAPP_FIELD_ELEMENT_DATA)('zkApp field element signing', function 
       expect(signatureResponse.field).toBe(data.expectedSignature.field.toString())
       expect(signatureResponse.scalar).toBe(data.expectedSignature.scalar.toString())
       expect(ledgerSignatureForVerify.signature).toBe(data.expectedSignature.base58)
+    } finally {
+      await sim.close()
+    }
+  })
+})
+
+// Non-canonical field elements (value >= the base field modulus) must be rejected.
+// Blind signing is enabled and the review is approved so the request reaches the
+// signing path; the app then rejects with INVALID_PARAMETER (SW 0x6802 = 26626).
+describe.each(OUT_OF_RANGE_FIELD_DATA)('zkApp field element signing - out of range rejected', function (data) {
+  test.concurrent.each(models)(`${data.name}`, async function (m) {
+    const sim = new Zemu(m.path)
+    try {
+      setTextOptions(m)
+      await sim.start({ ...defaultOptions, model: m.name })
+      const app = new MinaApp(sim.getTransport())
+
+      // Enable blind signing so the field-element request reaches the sign() path.
+      await toggleBlindSigningMina(sim, m)
+
+      const fieldBytes = commitmentToBytes(data.field)
+      const signatureRequest = app.signFieldElement(data.account, data.networkId, fieldBytes)
+
+      // Drive the review to approval so the request reaches sign(). navigateUntilText
+      // (not compareSnapshotsAndApprove) is used because the app returns an error
+      // instead of signing, so there is no post-approval main-menu screen to wait for;
+      // the return code is the proof, so no golden snapshots are needed here.
+      await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot())
+      await sim.waitUntilTextDisappears('Processing', 60000)
+      const approveKeyword = isTouchDevice(m.name) ? 'Hold to sign' : 'APPROVE'
+      await sim.navigateUntilText('.', `${m.prefix.toLowerCase()}-${data.name}`, approveKeyword, true, false, 0, 60000, true, true, isTouchDevice(m.name))
+
+      const signatureResponse = await signatureRequest
+
+      // Non-canonical field rejected: INVALID_PARAMETER -> SW 0x6802 -> 26626.
+      expect(signatureResponse.returnCode).toBe("26626")
     } finally {
       await sim.close()
     }
