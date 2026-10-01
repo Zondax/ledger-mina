@@ -289,16 +289,24 @@ void bytes_to_hex_display(char *out, size_t out_len, const uint8_t *in, size_t i
     }
 }
 
-// Note: does not validate the address
-void read_public_key_compressed(Compressed *out, const char *address)
+// Note: does not validate the checksum, only that the address decodes to the
+// expected length.  Callers are expected to have run validate_address first.
+bool read_public_key_compressed(Compressed *out, const char *address)
 {
-    if (strnlen(address, MINA_ADDRESS_LEN) != MINA_ADDRESS_LEN - 1) {
-        return;
+    if (out == NULL || address == NULL) {
+        return false;
     }
 
-    uint8_t bytes[40]= {0};
-    size_t bytes_len = 40;
-    b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, bytes_len);
+    if (strnlen(address, MINA_ADDRESS_LEN) != MINA_ADDRESS_LEN - 1) {
+        return false;
+    }
+
+    uint8_t bytes[40] = {0};
+    // A short decode would silently shift the x-coordinate against what the
+    // network derives from the same string, so require the exact length.
+    if (b58_decode(address, MINA_ADDRESS_LEN - 1, bytes, sizeof(bytes)) != (int)sizeof(bytes)) {
+        return false;
+    }
 
     struct bytes {
         uint8_t version;
@@ -311,4 +319,6 @@ void read_public_key_compressed(Compressed *out, const char *address)
         out->x[FIELD_BYTES - (i - 1)] = raw->payload[i];
     }
     out->is_odd = (bool)raw->payload[34];
+
+    return true;
 }
